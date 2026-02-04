@@ -157,11 +157,11 @@ export default function Home() {
                   return (
                     <div
                       key={code.id}
-                      className="flex items-center gap-3 p-4 rounded-md border border-border bg-card"
+                      className="p-4 rounded-md border border-border bg-card"
                     >
-                      <div className="flex-1">
+                      <div className="flex items-center justify-between gap-3">
                         <div className="flex items-center gap-2">
-                          <code className="font-mono font-semibold" data-testid={`text-discount-code-${code.id}`}>
+                          <code className="font-mono font-semibold text-primary" data-testid={`text-discount-code-${code.id}`}>
                             {code.code}
                           </code>
                           {code.discountPercent && (
@@ -171,24 +171,43 @@ export default function Home() {
                             </Badge>
                           )}
                         </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => copyCode(code)}
+                          data-testid={`button-copy-code-${code.id}`}
+                        >
+                          {isCopied ? (
+                            <Check className="w-4 h-4 text-primary" />
+                          ) : (
+                            <Copy className="w-4 h-4" />
+                          )}
+                        </Button>
+                      </div>
+                      {code.description && (
+                        <p className="text-sm text-muted-foreground mt-2">
+                          {code.description}
+                        </p>
+                      )}
+                      <div className="flex items-center justify-between mt-3">
                         {getSponsorName(code.sponsorId) && (
-                          <p className="text-xs text-muted-foreground mt-1">
+                          <span className="text-xs text-muted-foreground">
                             {getSponsorName(code.sponsorId)}
-                          </p>
+                          </span>
+                        )}
+                        {code.url && (
+                          <a
+                            href={code.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-primary hover:underline flex items-center gap-1"
+                            data-testid={`link-buy-${code.id}`}
+                          >
+                            Satın Al
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
                         )}
                       </div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => copyCode(code)}
-                        data-testid={`button-copy-code-${code.id}`}
-                      >
-                        {isCopied ? (
-                          <Check className="w-4 h-4 text-primary" />
-                        ) : (
-                          <Copy className="w-4 h-4" />
-                        )}
-                      </Button>
                     </div>
                   );
                 })}
