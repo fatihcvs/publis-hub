@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Trash2, Plus, Save, LogOut, ArrowLeft, Pencil, X, ChevronUp, ChevronDown } from "lucide-react";
+import { Trash2, Plus, Save, LogOut, ArrowLeft, Pencil, X, ChevronUp, ChevronDown, Upload, Loader2 } from "lucide-react";
 import { Link } from "wouter";
 import type { Profile, SocialLink, Sponsor, DiscountCode } from "@shared/schema";
 
@@ -25,6 +25,34 @@ export default function Admin() {
   const [editingSponsor, setEditingSponsor] = useState<Sponsor | null>(null);
   const [editingCode, setEditingCode] = useState<DiscountCode | null>(null);
   const [isReordering, setIsReordering] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("logo", file);
+
+      const response = await fetch("/api/admin/upload-logo", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+
+      if (!response.ok) throw new Error("Upload failed");
+
+      const data = await response.json();
+      setProfileForm({ ...profileForm, avatarUrl: data.url });
+      toast({ title: "Logo yüklendi" });
+    } catch (error) {
+      toast({ title: "Yükleme başarısız", variant: "destructive" });
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const { data: profile } = useQuery<Profile>({ queryKey: ["/api/profile"] });
   const { data: socialLinks = [] } = useQuery<SocialLink[]>({ queryKey: ["/api/social-links"] });
@@ -305,12 +333,41 @@ export default function Admin() {
               />
             </div>
             <div>
-              <Label>Avatar URL</Label>
-              <Input
-                value={profileForm.avatarUrl}
-                onChange={(e) => setProfileForm({ ...profileForm, avatarUrl: e.target.value })}
-                placeholder="https://..."
-              />
+              <Label>Logo</Label>
+              <div className="flex items-center gap-3">
+                {profileForm.avatarUrl && (
+                  <img 
+                    src={profileForm.avatarUrl} 
+                    alt="Logo" 
+                    className="w-16 h-16 rounded-full object-cover border"
+                  />
+                )}
+                <div className="flex flex-col gap-2">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    disabled={isUploading}
+                    onClick={() => document.getElementById("logo-upload")?.click()}
+                    data-testid="button-upload-logo"
+                  >
+                    {isUploading ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Upload className="w-4 h-4 mr-2" />
+                    )}
+                    {isUploading ? "Yükleniyor..." : "Logo Yükle"}
+                  </Button>
+                  <input
+                    id="logo-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleLogoUpload}
+                    data-testid="input-logo-file"
+                  />
+                  <span className="text-xs text-muted-foreground">JPG, PNG, GIF, WebP (maks. 5MB)</span>
+                </div>
+              </div>
             </div>
             <Button onClick={() => updateProfile.mutate(profileForm)} disabled={updateProfile.isPending}>
               <Save className="w-4 h-4 mr-2" />

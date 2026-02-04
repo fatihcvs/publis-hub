@@ -19,10 +19,17 @@ Kick ve YouTube içerik üreticileri için Linktree tarzı kişisel web sitesi. 
 - Erişim: `/admin` adresinden giriş yaparak
 - Güvenlik: Replit Auth ile korumalı
 - Özellikler:
-  - Profil düzenleme
-  - Sosyal medya linkleri ekleme/silme
-  - Sponsor ekleme/silme
-  - İndirim kodları ekleme/silme
+  - Profil düzenleme (logo dosya yüklemesi dahil)
+  - Sosyal medya linkleri ekleme/düzenleme/silme/sıralama
+  - Sponsor ekleme/düzenleme/silme/sıralama
+  - Oyunlar (indirim kodları) ekleme/düzenleme/silme/sıralama
+  - Manuel sıralama: Yukarı/aşağı butonları ile liste sırası değiştirilebilir
+
+## Logo Yükleme
+- Admin panelinden doğrudan dosya yüklemesi
+- Desteklenen formatlar: JPG, PNG, GIF, WebP
+- Maksimum boyut: 5MB
+- Yüklenen dosyalar: `/client/public/uploads/` klasörüne kaydedilir
 
 ## Teknik Yapı
 
