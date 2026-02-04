@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Trash2, Plus, Save, LogOut, ArrowLeft } from "lucide-react";
+import { Trash2, Plus, Save, LogOut, ArrowLeft, Pencil, X } from "lucide-react";
 import { Link } from "wouter";
 import type { Profile, SocialLink, Sponsor, DiscountCode } from "@shared/schema";
 
@@ -20,6 +20,10 @@ export default function Admin() {
   const [newLink, setNewLink] = useState({ platform: "", url: "", followerCount: "", badge: "", description: "" });
   const [newSponsor, setNewSponsor] = useState({ name: "", description: "", websiteUrl: "", code: "", discountPercent: "" });
   const [newCode, setNewCode] = useState({ code: "", description: "", discountPercent: "", url: "", sponsorId: "" });
+  
+  const [editingLink, setEditingLink] = useState<SocialLink | null>(null);
+  const [editingSponsor, setEditingSponsor] = useState<Sponsor | null>(null);
+  const [editingCode, setEditingCode] = useState<DiscountCode | null>(null);
 
   const { data: profile } = useQuery<Profile>({ queryKey: ["/api/profile"] });
   const { data: socialLinks = [] } = useQuery<SocialLink[]>({ queryKey: ["/api/social-links"] });
@@ -69,6 +73,25 @@ export default function Admin() {
     },
   });
 
+  const updateLink = useMutation({
+    mutationFn: (data: { id: string; updates: Partial<SocialLink> }) => {
+      const { platform, url, followerCount, badge, description } = data.updates;
+      const sanitized = {
+        platform,
+        url,
+        followerCount: followerCount || undefined,
+        badge: badge || undefined,
+        description: description || undefined,
+      };
+      return apiRequest("PUT", `/api/admin/social-links/${data.id}`, sanitized);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/social-links"] });
+      setEditingLink(null);
+      toast({ title: "Link güncellendi" });
+    },
+  });
+
   const createSponsor = useMutation({
     mutationFn: (data: { name: string; description: string; websiteUrl: string; code?: string; discountPercent?: number }) =>
       apiRequest("POST", "/api/admin/sponsors", { ...data, displayOrder: sponsors.length, isActive: true }),
@@ -87,6 +110,25 @@ export default function Admin() {
     },
   });
 
+  const updateSponsor = useMutation({
+    mutationFn: (data: { id: string; updates: Partial<Sponsor> }) => {
+      const { name, description, websiteUrl, code, discountPercent } = data.updates;
+      const sanitized = {
+        name,
+        description: description || undefined,
+        websiteUrl,
+        code: code || undefined,
+        discountPercent: discountPercent ? Number(discountPercent) : undefined,
+      };
+      return apiRequest("PUT", `/api/admin/sponsors/${data.id}`, sanitized);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/sponsors"] });
+      setEditingSponsor(null);
+      toast({ title: "Sponsor güncellendi" });
+    },
+  });
+
   const createCode = useMutation({
     mutationFn: (data: { code: string; description: string; discountPercent?: number; url: string; sponsorId?: string }) =>
       apiRequest("POST", "/api/admin/discount-codes", { ...data, displayOrder: discountCodes.length, isActive: true }),
@@ -102,6 +144,24 @@ export default function Admin() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/discount-codes"] });
       toast({ title: "Kod silindi" });
+    },
+  });
+
+  const updateCode = useMutation({
+    mutationFn: (data: { id: string; updates: Partial<DiscountCode> }) => {
+      const { code, description, url, discountPercent } = data.updates;
+      const sanitized = {
+        code,
+        description: description || undefined,
+        url: url || undefined,
+        discountPercent: discountPercent ? Number(discountPercent) : undefined,
+      };
+      return apiRequest("PUT", `/api/admin/discount-codes/${data.id}`, sanitized);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/discount-codes"] });
+      setEditingCode(null);
+      toast({ title: "Kod güncellendi" });
     },
   });
 
@@ -192,19 +252,70 @@ export default function Admin() {
           </CardHeader>
           <CardContent className="space-y-4">
             {socialLinks.map((link) => (
-              <div key={link.id} className="flex items-center gap-2 p-2 border rounded-md">
-                <div className="flex-1">
-                  <span className="font-medium">{link.platform}</span>
-                  {link.badge && (
-                    <span className="ml-2 text-xs text-primary">({link.badge})</span>
-                  )}
-                  {link.followerCount && (
-                    <span className="ml-2 text-xs text-muted-foreground">{link.followerCount} takipçi</span>
-                  )}
-                </div>
-                <Button variant="ghost" size="icon" onClick={() => deleteLink.mutate(link.id)}>
-                  <Trash2 className="w-4 h-4 text-destructive" />
-                </Button>
+              <div key={link.id} className="p-3 border rounded-md space-y-2">
+                {editingLink?.id === link.id ? (
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <Input
+                        value={editingLink.platform}
+                        onChange={(e) => setEditingLink({ ...editingLink, platform: e.target.value })}
+                        placeholder="Platform"
+                        className="flex-1"
+                      />
+                      <Input
+                        value={editingLink.url}
+                        onChange={(e) => setEditingLink({ ...editingLink, url: e.target.value })}
+                        placeholder="URL"
+                        className="flex-1"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Input
+                        value={editingLink.followerCount || ""}
+                        onChange={(e) => setEditingLink({ ...editingLink, followerCount: e.target.value })}
+                        placeholder="Takipçi sayısı"
+                        className="flex-1"
+                      />
+                      <Input
+                        value={editingLink.badge || ""}
+                        onChange={(e) => setEditingLink({ ...editingLink, badge: e.target.value })}
+                        placeholder="Rozet (Partner vb.)"
+                        className="flex-1"
+                      />
+                    </div>
+                    <Input
+                      value={editingLink.description || ""}
+                      onChange={(e) => setEditingLink({ ...editingLink, description: e.target.value })}
+                      placeholder="Açıklama"
+                    />
+                    <div className="flex gap-2">
+                      <Button size="sm" onClick={() => updateLink.mutate({ id: link.id, updates: editingLink })} disabled={updateLink.isPending}>
+                        <Save className="w-4 h-4 mr-1" /> Kaydet
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => setEditingLink(null)}>
+                        <X className="w-4 h-4 mr-1" /> İptal
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1">
+                      <span className="font-medium">{link.platform}</span>
+                      {link.badge && (
+                        <span className="ml-2 text-xs text-primary">({link.badge})</span>
+                      )}
+                      {link.followerCount && (
+                        <span className="ml-2 text-xs text-muted-foreground">{link.followerCount} takipçi</span>
+                      )}
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={() => setEditingLink(link)}>
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => deleteLink.mutate(link.id)}>
+                      <Trash2 className="w-4 h-4 text-destructive" />
+                    </Button>
+                  </div>
+                )}
               </div>
             ))}
             <div className="space-y-2">
@@ -263,16 +374,64 @@ export default function Admin() {
           </CardHeader>
           <CardContent className="space-y-4">
             {sponsors.map((sponsor) => (
-              <div key={sponsor.id} className="flex items-center gap-2 p-2 border rounded-md">
-                <div className="flex-1">
-                  <span className="font-medium">{sponsor.name}</span>
-                  {sponsor.code && (
-                    <code className="ml-2 text-sm text-primary font-mono">{sponsor.code}</code>
-                  )}
-                </div>
-                <Button variant="ghost" size="icon" onClick={() => deleteSponsor.mutate(sponsor.id)}>
-                  <Trash2 className="w-4 h-4 text-destructive" />
-                </Button>
+              <div key={sponsor.id} className="p-3 border rounded-md space-y-2">
+                {editingSponsor?.id === sponsor.id ? (
+                  <div className="space-y-2">
+                    <Input
+                      value={editingSponsor.name}
+                      onChange={(e) => setEditingSponsor({ ...editingSponsor, name: e.target.value })}
+                      placeholder="Sponsor adı"
+                    />
+                    <Input
+                      value={editingSponsor.description || ""}
+                      onChange={(e) => setEditingSponsor({ ...editingSponsor, description: e.target.value })}
+                      placeholder="Açıklama"
+                    />
+                    <Input
+                      value={editingSponsor.websiteUrl}
+                      onChange={(e) => setEditingSponsor({ ...editingSponsor, websiteUrl: e.target.value })}
+                      placeholder="Web sitesi URL"
+                    />
+                    <div className="flex gap-2">
+                      <Input
+                        value={editingSponsor.code || ""}
+                        onChange={(e) => setEditingSponsor({ ...editingSponsor, code: e.target.value })}
+                        placeholder="İndirim kodu"
+                        className="flex-1"
+                      />
+                      <Input
+                        value={editingSponsor.discountPercent?.toString() || ""}
+                        onChange={(e) => setEditingSponsor({ ...editingSponsor, discountPercent: e.target.value ? parseInt(e.target.value) : undefined })}
+                        placeholder="İndirim %"
+                        type="number"
+                        className="w-24"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button size="sm" onClick={() => updateSponsor.mutate({ id: sponsor.id, updates: editingSponsor })} disabled={updateSponsor.isPending}>
+                        <Save className="w-4 h-4 mr-1" /> Kaydet
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => setEditingSponsor(null)}>
+                        <X className="w-4 h-4 mr-1" /> İptal
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1">
+                      <span className="font-medium">{sponsor.name}</span>
+                      {sponsor.code && (
+                        <code className="ml-2 text-sm text-primary font-mono">{sponsor.code}</code>
+                      )}
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={() => setEditingSponsor(sponsor)}>
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => deleteSponsor.mutate(sponsor.id)}>
+                      <Trash2 className="w-4 h-4 text-destructive" />
+                    </Button>
+                  </div>
+                )}
               </div>
             ))}
             <div className="space-y-2">
@@ -323,12 +482,55 @@ export default function Admin() {
           </CardHeader>
           <CardContent className="space-y-4">
             {discountCodes.map((code) => (
-              <div key={code.id} className="flex items-center gap-2 p-2 border rounded-md">
-                <code className="font-mono font-semibold">{code.code}</code>
-                <span className="flex-1 text-sm text-muted-foreground">{code.description}</span>
-                <Button variant="ghost" size="icon" onClick={() => deleteCode.mutate(code.id)}>
-                  <Trash2 className="w-4 h-4 text-destructive" />
-                </Button>
+              <div key={code.id} className="p-3 border rounded-md space-y-2">
+                {editingCode?.id === code.id ? (
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <Input
+                        value={editingCode.code}
+                        onChange={(e) => setEditingCode({ ...editingCode, code: e.target.value })}
+                        placeholder="Kod"
+                        className="flex-1"
+                      />
+                      <Input
+                        value={editingCode.discountPercent?.toString() || ""}
+                        onChange={(e) => setEditingCode({ ...editingCode, discountPercent: e.target.value ? parseInt(e.target.value) : undefined })}
+                        placeholder="İndirim %"
+                        type="number"
+                        className="w-24"
+                      />
+                    </div>
+                    <Input
+                      value={editingCode.description || ""}
+                      onChange={(e) => setEditingCode({ ...editingCode, description: e.target.value })}
+                      placeholder="Açıklama"
+                    />
+                    <Input
+                      value={editingCode.url || ""}
+                      onChange={(e) => setEditingCode({ ...editingCode, url: e.target.value })}
+                      placeholder="Satın alma linki"
+                    />
+                    <div className="flex gap-2">
+                      <Button size="sm" onClick={() => updateCode.mutate({ id: code.id, updates: editingCode })} disabled={updateCode.isPending}>
+                        <Save className="w-4 h-4 mr-1" /> Kaydet
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => setEditingCode(null)}>
+                        <X className="w-4 h-4 mr-1" /> İptal
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <code className="font-mono font-semibold">{code.code}</code>
+                    <span className="flex-1 text-sm text-muted-foreground">{code.description}</span>
+                    <Button variant="ghost" size="icon" onClick={() => setEditingCode(code)}>
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => deleteCode.mutate(code.id)}>
+                      <Trash2 className="w-4 h-4 text-destructive" />
+                    </Button>
+                  </div>
+                )}
               </div>
             ))}
             <div className="space-y-2">
