@@ -155,11 +155,11 @@ export default function Admin() {
   });
 
   const createSponsor = useMutation({
-    mutationFn: (data: { name: string; description: string; websiteUrl: string; code?: string; discountPercent?: number }) =>
+    mutationFn: (data: { name: string; description: string; websiteUrl: string; code?: string; discountPercent?: number; logoUrl?: string }) =>
       apiRequest("POST", "/api/admin/sponsors", { ...data, displayOrder: sponsors.length, isActive: true }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/sponsors"] });
-      setNewSponsor({ name: "", description: "", websiteUrl: "", code: "", discountPercent: "" });
+      setNewSponsor({ name: "", description: "", websiteUrl: "", code: "", discountPercent: "", logoUrl: "" });
       toast({ title: "Sponsor eklendi" });
     },
   });
@@ -729,30 +729,20 @@ export default function Admin() {
               <div key={code.id} className="p-3 border rounded-md space-y-2">
                 {editingCode?.id === code.id ? (
                   <div className="space-y-2">
-                    <div className="flex gap-2">
-                      <Input
-                        value={editingCode.code}
-                        onChange={(e) => setEditingCode({ ...editingCode, code: e.target.value })}
-                        placeholder="Kod"
-                        className="flex-1"
-                      />
-                      <Input
-                        value={editingCode.discountPercent?.toString() || ""}
-                        onChange={(e) => setEditingCode({ ...editingCode, discountPercent: e.target.value ? parseInt(e.target.value) : null })}
-                        placeholder="İndirim %"
-                        type="number"
-                        className="w-24"
-                      />
-                    </div>
                     <Input
                       value={editingCode.description || ""}
                       onChange={(e) => setEditingCode({ ...editingCode, description: e.target.value })}
-                      placeholder="Açıklama"
+                      placeholder="Oyun Adı"
+                    />
+                    <Input
+                      value={editingCode.code}
+                      onChange={(e) => setEditingCode({ ...editingCode, code: e.target.value })}
+                      placeholder="Kod"
                     />
                     <Input
                       value={editingCode.url || ""}
                       onChange={(e) => setEditingCode({ ...editingCode, url: e.target.value })}
-                      placeholder="Satın alma linki"
+                      placeholder="Link"
                     />
                     <div className="flex gap-2">
                       <Button size="sm" onClick={() => updateCode.mutate({ id: code.id, updates: editingCode })} disabled={updateCode.isPending}>
@@ -773,8 +763,9 @@ export default function Admin() {
                         <ChevronDown className="w-4 h-4" />
                       </Button>
                     </div>
-                    <code className="font-mono font-semibold">{code.code}</code>
-                    <span className="flex-1 text-sm text-muted-foreground">{code.description}</span>
+                    <span className="font-medium">{code.description || "İsimsiz"}</span>
+                    <code className="font-mono text-sm text-primary">{code.code}</code>
+                    <span className="flex-1"></span>
                     <Button variant="ghost" size="icon" onClick={() => setEditingCode(code)}>
                       <Pencil className="w-4 h-4" />
                     </Button>
@@ -785,38 +776,36 @@ export default function Admin() {
                 )}
               </div>
             ))}
-            <div className="space-y-2">
+            <div className="space-y-2 p-3 border rounded-md bg-muted/30">
+              <div className="text-sm font-medium mb-2">Yeni Oyun Ekle</div>
+              <Input
+                value={newCode.description}
+                onChange={(e) => setNewCode({ ...newCode, description: e.target.value })}
+                placeholder="Oyun Adı"
+              />
               <Input
                 value={newCode.code}
                 onChange={(e) => setNewCode({ ...newCode, code: e.target.value })}
                 placeholder="Kod"
               />
               <Input
-                value={newCode.description}
-                onChange={(e) => setNewCode({ ...newCode, description: e.target.value })}
-                placeholder="Açıklama"
-              />
-              <Input
-                value={newCode.discountPercent}
-                onChange={(e) => setNewCode({ ...newCode, discountPercent: e.target.value })}
-                placeholder="İndirim % (opsiyonel)"
-                type="number"
-              />
-              <Input
                 value={newCode.url}
                 onChange={(e) => setNewCode({ ...newCode, url: e.target.value })}
-                placeholder="Link (opsiyonel)"
+                placeholder="Link"
               />
               <Button 
-                onClick={() => createCode.mutate({
-                  ...newCode,
-                  discountPercent: newCode.discountPercent ? parseInt(newCode.discountPercent) : undefined,
-                  sponsorId: newCode.sponsorId || undefined,
-                })} 
+                onClick={() => {
+                  createCode.mutate({
+                    ...newCode,
+                    discountPercent: undefined,
+                    sponsorId: undefined,
+                  });
+                  setNewCode({ code: "", description: "", discountPercent: "", url: "", sponsorId: "" });
+                }} 
                 disabled={!newCode.code}
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Kod Ekle
+                Oyun Ekle
               </Button>
             </div>
           </CardContent>
