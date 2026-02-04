@@ -1,31 +1,43 @@
-# İçerik Üreticisi Kişisel Web Sitesi
+# ThePublisher - İçerik Üreticisi Kişisel Web Sitesi
 
 ## Proje Açıklaması
-Kick ve YouTube içerik üreticileri için kişisel web sitesi. Sosyal medya linkleri, sponsorlar ve özel indirim kodları içerir.
+Kick ve YouTube içerik üreticileri için Linktree tarzı kişisel web sitesi. Sosyal medya linkleri, sponsorlar ve oyun satın alma kodları içerir.
 
 ## Özellikler
-- **Hero Bölümü**: Profil fotoğrafı, isim, başlık ve bio
+- **Profil Bölümü**: Profil fotoğrafı, isim, başlık ve bio
 - **Sosyal Medya Linkleri**: Kick, YouTube, Twitter/X, Instagram, Discord, TikTok
-- **Sponsorlar**: Sponsor kartları ile logo, açıklama ve web sitesi linki
-- **İndirim Kodları**: Tek tıkla kopyalama, indirim yüzdesi gösterimi
+- **Sponsorlar**: Sponsor kartları ile açıklama ve web sitesi linki
+- **Oyun Kodları**: Tek tıkla kopyalama, indirim yüzdesi gösterimi
 - **Tema Değiştirme**: Koyu/açık mod desteği
+- **Admin Paneli**: Replit Auth ile güvenli giriş, tüm içerikleri yönetme
+
+## Sayfa Yapısı
+- `/` - Ana sayfa (Linktree tarzı basit tasarım)
+- `/admin` - Admin paneli (giriş yapılması gerekir)
+
+## Admin Paneli
+- Erişim: `/admin` adresinden giriş yaparak
+- Güvenlik: Replit Auth ile korumalı
+- Özellikler:
+  - Profil düzenleme
+  - Sosyal medya linkleri ekleme/silme
+  - Sponsor ekleme/silme
+  - İndirim kodları ekleme/silme
 
 ## Teknik Yapı
 
 ### Frontend (React + TypeScript)
 - `/client/src/pages/home.tsx` - Ana sayfa
-- `/client/src/components/hero-section.tsx` - Hero bölümü
-- `/client/src/components/social-links-section.tsx` - Sosyal linkler
-- `/client/src/components/sponsors-section.tsx` - Sponsorlar
-- `/client/src/components/discount-codes-section.tsx` - İndirim kodları
+- `/client/src/pages/admin.tsx` - Admin paneli
 - `/client/src/components/theme-provider.tsx` - Tema yönetimi
 - `/client/src/components/theme-toggle.tsx` - Tema değiştirme butonu
+- `/client/src/hooks/use-auth.ts` - Kimlik doğrulama hook
 
 ### Backend (Express + TypeScript)
 - `/server/routes.ts` - API endpointleri
 - `/server/storage.ts` - Veritabanı işlemleri
 - `/server/db.ts` - PostgreSQL bağlantısı
-- `/server/seed.ts` - Örnek veri ekleme
+- `/server/replit_integrations/auth/` - Replit Auth entegrasyonu
 
 ### Veritabanı (PostgreSQL + Drizzle ORM)
 - `/shared/schema.ts` - Veri modelleri
@@ -33,12 +45,21 @@ Kick ve YouTube içerik üreticileri için kişisel web sitesi. Sosyal medya lin
   - `socialLinks` - Sosyal medya linkleri
   - `sponsors` - Sponsor bilgileri
   - `discountCodes` - İndirim kodları
+  - `users` - Kullanıcılar (Replit Auth)
+  - `sessions` - Oturumlar
 
 ### API Endpointleri
+**Genel (Public):**
 - `GET /api/profile` - Profil bilgilerini getir
 - `GET /api/social-links` - Sosyal linkleri getir
 - `GET /api/sponsors` - Sponsorları getir
 - `GET /api/discount-codes` - İndirim kodlarını getir
+
+**Admin (Korumalı):**
+- `PUT /api/admin/profile` - Profil güncelle
+- `POST/PUT/DELETE /api/admin/social-links` - Sosyal link CRUD
+- `POST/PUT/DELETE /api/admin/sponsors` - Sponsor CRUD
+- `POST/PUT/DELETE /api/admin/discount-codes` - İndirim kodu CRUD
 
 ## Tasarım
 - **Renk Teması**: Yeşil (Gaming teması - HSL 145)
