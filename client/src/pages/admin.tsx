@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Trash2, Plus, Save, LogOut, ArrowLeft, Pencil, X } from "lucide-react";
+import { Trash2, Plus, Save, LogOut, ArrowLeft, Pencil, X, ChevronUp, ChevronDown } from "lucide-react";
 import { Link } from "wouter";
 import type { Profile, SocialLink, Sponsor, DiscountCode } from "@shared/schema";
 
@@ -24,6 +24,7 @@ export default function Admin() {
   const [editingLink, setEditingLink] = useState<SocialLink | null>(null);
   const [editingSponsor, setEditingSponsor] = useState<Sponsor | null>(null);
   const [editingCode, setEditingCode] = useState<DiscountCode | null>(null);
+  const [isReordering, setIsReordering] = useState(false);
 
   const { data: profile } = useQuery<Profile>({ queryKey: ["/api/profile"] });
   const { data: socialLinks = [] } = useQuery<SocialLink[]>({ queryKey: ["/api/social-links"] });
@@ -165,6 +166,78 @@ export default function Admin() {
     },
   });
 
+  const reorderLinks = async (id: string, direction: 'up' | 'down') => {
+    if (isReordering) return;
+    setIsReordering(true);
+    try {
+      const sorted = [...socialLinks].sort((a, b) => a.displayOrder - b.displayOrder);
+      const index = sorted.findIndex(item => item.id === id);
+      if (direction === 'up' && index > 0) {
+        const current = sorted[index];
+        const prev = sorted[index - 1];
+        await apiRequest("PUT", `/api/admin/social-links/${current.id}`, { displayOrder: prev.displayOrder });
+        await apiRequest("PUT", `/api/admin/social-links/${prev.id}`, { displayOrder: current.displayOrder });
+        queryClient.invalidateQueries({ queryKey: ["/api/social-links"] });
+      } else if (direction === 'down' && index < sorted.length - 1) {
+        const current = sorted[index];
+        const next = sorted[index + 1];
+        await apiRequest("PUT", `/api/admin/social-links/${current.id}`, { displayOrder: next.displayOrder });
+        await apiRequest("PUT", `/api/admin/social-links/${next.id}`, { displayOrder: current.displayOrder });
+        queryClient.invalidateQueries({ queryKey: ["/api/social-links"] });
+      }
+    } finally {
+      setIsReordering(false);
+    }
+  };
+
+  const reorderSponsors = async (id: string, direction: 'up' | 'down') => {
+    if (isReordering) return;
+    setIsReordering(true);
+    try {
+      const sorted = [...sponsors].sort((a, b) => a.displayOrder - b.displayOrder);
+      const index = sorted.findIndex(item => item.id === id);
+      if (direction === 'up' && index > 0) {
+        const current = sorted[index];
+        const prev = sorted[index - 1];
+        await apiRequest("PUT", `/api/admin/sponsors/${current.id}`, { displayOrder: prev.displayOrder });
+        await apiRequest("PUT", `/api/admin/sponsors/${prev.id}`, { displayOrder: current.displayOrder });
+        queryClient.invalidateQueries({ queryKey: ["/api/sponsors"] });
+      } else if (direction === 'down' && index < sorted.length - 1) {
+        const current = sorted[index];
+        const next = sorted[index + 1];
+        await apiRequest("PUT", `/api/admin/sponsors/${current.id}`, { displayOrder: next.displayOrder });
+        await apiRequest("PUT", `/api/admin/sponsors/${next.id}`, { displayOrder: current.displayOrder });
+        queryClient.invalidateQueries({ queryKey: ["/api/sponsors"] });
+      }
+    } finally {
+      setIsReordering(false);
+    }
+  };
+
+  const reorderCodes = async (id: string, direction: 'up' | 'down') => {
+    if (isReordering) return;
+    setIsReordering(true);
+    try {
+      const sorted = [...discountCodes].sort((a, b) => a.displayOrder - b.displayOrder);
+      const index = sorted.findIndex(item => item.id === id);
+      if (direction === 'up' && index > 0) {
+        const current = sorted[index];
+        const prev = sorted[index - 1];
+        await apiRequest("PUT", `/api/admin/discount-codes/${current.id}`, { displayOrder: prev.displayOrder });
+        await apiRequest("PUT", `/api/admin/discount-codes/${prev.id}`, { displayOrder: current.displayOrder });
+        queryClient.invalidateQueries({ queryKey: ["/api/discount-codes"] });
+      } else if (direction === 'down' && index < sorted.length - 1) {
+        const current = sorted[index];
+        const next = sorted[index + 1];
+        await apiRequest("PUT", `/api/admin/discount-codes/${current.id}`, { displayOrder: next.displayOrder });
+        await apiRequest("PUT", `/api/admin/discount-codes/${next.id}`, { displayOrder: current.displayOrder });
+        queryClient.invalidateQueries({ queryKey: ["/api/discount-codes"] });
+      }
+    } finally {
+      setIsReordering(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -251,7 +324,7 @@ export default function Admin() {
             <CardTitle>Sosyal Medya Linkleri</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {socialLinks.map((link) => (
+            {[...socialLinks].sort((a, b) => a.displayOrder - b.displayOrder).map((link) => (
               <div key={link.id} className="p-3 border rounded-md space-y-2">
                 {editingLink?.id === link.id ? (
                   <div className="space-y-2">
@@ -299,6 +372,14 @@ export default function Admin() {
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
+                    <div className="flex flex-col gap-0.5">
+                      <Button variant="ghost" size="sm" className="px-1 py-0" onClick={() => reorderLinks(link.id, 'up')} disabled={isReordering}>
+                        <ChevronUp className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" className="px-1 py-0" onClick={() => reorderLinks(link.id, 'down')} disabled={isReordering}>
+                        <ChevronDown className="w-4 h-4" />
+                      </Button>
+                    </div>
                     <div className="flex-1">
                       <span className="font-medium">{link.platform}</span>
                       {link.badge && (
@@ -373,7 +454,7 @@ export default function Admin() {
             <CardTitle>Sponsorlar</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {sponsors.map((sponsor) => (
+            {[...sponsors].sort((a, b) => a.displayOrder - b.displayOrder).map((sponsor) => (
               <div key={sponsor.id} className="p-3 border rounded-md space-y-2">
                 {editingSponsor?.id === sponsor.id ? (
                   <div className="space-y-2">
@@ -418,6 +499,14 @@ export default function Admin() {
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
+                    <div className="flex flex-col gap-0.5">
+                      <Button variant="ghost" size="sm" className="px-1 py-0" onClick={() => reorderSponsors(sponsor.id, 'up')} disabled={isReordering}>
+                        <ChevronUp className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" className="px-1 py-0" onClick={() => reorderSponsors(sponsor.id, 'down')} disabled={isReordering}>
+                        <ChevronDown className="w-4 h-4" />
+                      </Button>
+                    </div>
                     <div className="flex-1">
                       <span className="font-medium">{sponsor.name}</span>
                       {sponsor.code && (
@@ -481,7 +570,7 @@ export default function Admin() {
             <CardTitle>Oyunlar</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {discountCodes.map((code) => (
+            {[...discountCodes].sort((a, b) => a.displayOrder - b.displayOrder).map((code) => (
               <div key={code.id} className="p-3 border rounded-md space-y-2">
                 {editingCode?.id === code.id ? (
                   <div className="space-y-2">
@@ -521,6 +610,14 @@ export default function Admin() {
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
+                    <div className="flex flex-col gap-0.5">
+                      <Button variant="ghost" size="sm" className="px-1 py-0" onClick={() => reorderCodes(code.id, 'up')} disabled={isReordering}>
+                        <ChevronUp className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" className="px-1 py-0" onClick={() => reorderCodes(code.id, 'down')} disabled={isReordering}>
+                        <ChevronDown className="w-4 h-4" />
+                      </Button>
+                    </div>
                     <code className="font-mono font-semibold">{code.code}</code>
                     <span className="flex-1 text-sm text-muted-foreground">{code.description}</span>
                     <Button variant="ghost" size="icon" onClick={() => setEditingCode(code)}>
