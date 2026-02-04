@@ -196,9 +196,9 @@ export default function Admin() {
       const sanitized = {
         platform,
         url,
-        followerCount: followerCount || undefined,
-        badge: badge || undefined,
-        description: description || undefined,
+        followerCount: followerCount || null,
+        badge: badge || null,
+        description: description !== undefined ? (description || null) : undefined,
       };
       return apiRequest("PUT", `/api/admin/social-links/${data.id}`, sanitized);
     },
