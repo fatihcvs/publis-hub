@@ -17,7 +17,7 @@ export default function Admin() {
   const { toast } = useToast();
 
   const [profileForm, setProfileForm] = useState({ name: "", title: "", bio: "", avatarUrl: "" });
-  const [newLink, setNewLink] = useState({ platform: "", url: "" });
+  const [newLink, setNewLink] = useState({ platform: "", url: "", followerCount: "", badge: "", description: "" });
   const [newSponsor, setNewSponsor] = useState({ name: "", description: "", websiteUrl: "", code: "", discountPercent: "" });
   const [newCode, setNewCode] = useState({ code: "", description: "", discountPercent: "", url: "", sponsorId: "" });
 
@@ -52,11 +52,11 @@ export default function Admin() {
   });
 
   const createLink = useMutation({
-    mutationFn: (data: { platform: string; url: string }) => 
+    mutationFn: (data: { platform: string; url: string; followerCount?: string; badge?: string; description?: string }) => 
       apiRequest("POST", "/api/admin/social-links", { ...data, displayOrder: socialLinks.length, isActive: true }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/social-links"] });
-      setNewLink({ platform: "", url: "" });
+      setNewLink({ platform: "", url: "", followerCount: "", badge: "", description: "" });
       toast({ title: "Link eklendi" });
     },
   });
@@ -186,28 +186,65 @@ export default function Admin() {
           <CardContent className="space-y-4">
             {socialLinks.map((link) => (
               <div key={link.id} className="flex items-center gap-2 p-2 border rounded-md">
-                <span className="flex-1 font-medium">{link.platform}</span>
-                <span className="text-sm text-muted-foreground truncate max-w-[200px]">{link.url}</span>
+                <div className="flex-1">
+                  <span className="font-medium">{link.platform}</span>
+                  {link.badge && (
+                    <span className="ml-2 text-xs text-primary">({link.badge})</span>
+                  )}
+                  {link.followerCount && (
+                    <span className="ml-2 text-xs text-muted-foreground">{link.followerCount} takipçi</span>
+                  )}
+                </div>
                 <Button variant="ghost" size="icon" onClick={() => deleteLink.mutate(link.id)}>
                   <Trash2 className="w-4 h-4 text-destructive" />
                 </Button>
               </div>
             ))}
-            <div className="flex gap-2">
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <Input
+                  value={newLink.platform}
+                  onChange={(e) => setNewLink({ ...newLink, platform: e.target.value })}
+                  placeholder="Platform (Kick, YouTube...)"
+                  className="flex-1"
+                />
+                <Input
+                  value={newLink.url}
+                  onChange={(e) => setNewLink({ ...newLink, url: e.target.value })}
+                  placeholder="URL"
+                  className="flex-1"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  value={newLink.followerCount}
+                  onChange={(e) => setNewLink({ ...newLink, followerCount: e.target.value })}
+                  placeholder="Takipçi sayısı (ör: 50K)"
+                  className="flex-1"
+                />
+                <Input
+                  value={newLink.badge}
+                  onChange={(e) => setNewLink({ ...newLink, badge: e.target.value })}
+                  placeholder="Rozet (ör: Partner)"
+                  className="flex-1"
+                />
+              </div>
               <Input
-                value={newLink.platform}
-                onChange={(e) => setNewLink({ ...newLink, platform: e.target.value })}
-                placeholder="Platform (Kick, YouTube...)"
-                className="flex-1"
+                value={newLink.description}
+                onChange={(e) => setNewLink({ ...newLink, description: e.target.value })}
+                placeholder="Açıklama (opsiyonel)"
               />
-              <Input
-                value={newLink.url}
-                onChange={(e) => setNewLink({ ...newLink, url: e.target.value })}
-                placeholder="URL"
-                className="flex-1"
-              />
-              <Button onClick={() => createLink.mutate(newLink)} disabled={!newLink.platform || !newLink.url}>
-                <Plus className="w-4 h-4" />
+              <Button 
+                onClick={() => createLink.mutate({
+                  ...newLink,
+                  followerCount: newLink.followerCount || undefined,
+                  badge: newLink.badge || undefined,
+                  description: newLink.description || undefined,
+                })} 
+                disabled={!newLink.platform || !newLink.url}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Link Ekle
               </Button>
             </div>
           </CardContent>

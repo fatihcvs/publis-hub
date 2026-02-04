@@ -134,12 +134,33 @@ export default function Home() {
                 href={link.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 p-4 rounded-md border border-border bg-card hover-elevate transition-colors"
+                className="block p-4 rounded-md border border-border bg-card hover-elevate transition-colors"
                 data-testid={`link-social-${link.platform.toLowerCase()}`}
               >
-                <Icon className="w-5 h-5 shrink-0" />
-                <span className="font-medium flex-1">{link.platform}</span>
-                <ExternalLink className="w-4 h-4 text-muted-foreground" />
+                <div className="flex items-center gap-3">
+                  <Icon className="w-5 h-5 shrink-0" />
+                  <span className="font-semibold flex-1">{link.platform}</span>
+                  {link.badge && (
+                    <Badge variant="secondary" className="text-xs">
+                      {link.badge}
+                    </Badge>
+                  )}
+                  <ExternalLink className="w-4 h-4 text-muted-foreground" />
+                </div>
+                {(link.followerCount || link.description) && (
+                  <div className="mt-2 ml-8 flex flex-col gap-1">
+                    {link.followerCount && (
+                      <span className="text-sm text-primary font-medium">
+                        {link.followerCount} takipçi
+                      </span>
+                    )}
+                    {link.description && (
+                      <span className="text-xs text-muted-foreground">
+                        {link.description}
+                      </span>
+                    )}
+                  </div>
+                )}
               </a>
             );
           })}

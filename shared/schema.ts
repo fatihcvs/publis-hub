@@ -17,6 +17,9 @@ export const socialLinks = pgTable("social_links", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   platform: text("platform").notNull(),
   url: text("url").notNull(),
+  followerCount: text("follower_count"),
+  badge: text("badge"),
+  description: text("description"),
   displayOrder: integer("display_order").notNull().default(0),
   isActive: boolean("is_active").notNull().default(true),
 });
