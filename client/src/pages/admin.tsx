@@ -18,7 +18,7 @@ export default function Admin() {
 
   const [profileForm, setProfileForm] = useState({ name: "", title: "", bio: "", avatarUrl: "" });
   const [newLink, setNewLink] = useState({ platform: "", url: "", followerCount: "", badge: "", description: "" });
-  const [newSponsor, setNewSponsor] = useState({ name: "", description: "", websiteUrl: "", code: "", discountPercent: "" });
+  const [newSponsor, setNewSponsor] = useState({ name: "", description: "", websiteUrl: "", code: "", discountPercent: "", logoUrl: "" });
   const [newCode, setNewCode] = useState({ code: "", description: "", discountPercent: "", url: "", sponsorId: "" });
   
   const [editingLink, setEditingLink] = useState<SocialLink | null>(null);
@@ -26,6 +26,7 @@ export default function Admin() {
   const [editingCode, setEditingCode] = useState<DiscountCode | null>(null);
   const [isReordering, setIsReordering] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadingSponsorId, setUploadingSponsorId] = useState<string | null>(null);
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -51,6 +52,38 @@ export default function Admin() {
       toast({ title: "Yükleme başarısız", variant: "destructive" });
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const handleSponsorLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>, sponsorId: string | null) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingSponsorId(sponsorId || "new");
+    try {
+      const formData = new FormData();
+      formData.append("logo", file);
+
+      const response = await fetch("/api/admin/upload-sponsor-logo", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+
+      if (!response.ok) throw new Error("Upload failed");
+
+      const data = await response.json();
+      
+      if (sponsorId && editingSponsor) {
+        setEditingSponsor({ ...editingSponsor, logoUrl: data.url });
+      } else {
+        setNewSponsor({ ...newSponsor, logoUrl: data.url });
+      }
+      toast({ title: "Logo yüklendi" });
+    } catch (error) {
+      toast({ title: "Yükleme başarısız", variant: "destructive" });
+    } finally {
+      setUploadingSponsorId(null);
     }
   };
 
@@ -515,6 +548,34 @@ export default function Admin() {
               <div key={sponsor.id} className="p-3 border rounded-md space-y-2">
                 {editingSponsor?.id === sponsor.id ? (
                   <div className="space-y-2">
+                    <div className="flex items-center gap-3">
+                      {editingSponsor.logoUrl && (
+                        <img src={editingSponsor.logoUrl} alt="Logo" className="w-12 h-12 rounded object-contain border" />
+                      )}
+                      <div>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="sm"
+                          disabled={uploadingSponsorId === sponsor.id}
+                          onClick={() => document.getElementById(`sponsor-logo-${sponsor.id}`)?.click()}
+                        >
+                          {uploadingSponsorId === sponsor.id ? (
+                            <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                          ) : (
+                            <Upload className="w-4 h-4 mr-1" />
+                          )}
+                          Logo Yükle
+                        </Button>
+                        <input
+                          id={`sponsor-logo-${sponsor.id}`}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handleSponsorLogoUpload(e, sponsor.id)}
+                        />
+                      </div>
+                    </div>
                     <Input
                       value={editingSponsor.name}
                       onChange={(e) => setEditingSponsor({ ...editingSponsor, name: e.target.value })}
@@ -564,6 +625,9 @@ export default function Admin() {
                         <ChevronDown className="w-4 h-4" />
                       </Button>
                     </div>
+                    {sponsor.logoUrl && (
+                      <img src={sponsor.logoUrl} alt={sponsor.name} className="w-10 h-10 rounded object-contain border" />
+                    )}
                     <div className="flex-1">
                       <span className="font-medium">{sponsor.name}</span>
                       {sponsor.code && (
@@ -580,7 +644,36 @@ export default function Admin() {
                 )}
               </div>
             ))}
-            <div className="space-y-2">
+            <div className="space-y-2 p-3 border rounded-md bg-muted/30">
+              <div className="text-sm font-medium mb-2">Yeni Sponsor Ekle</div>
+              <div className="flex items-center gap-3">
+                {newSponsor.logoUrl && (
+                  <img src={newSponsor.logoUrl} alt="Logo" className="w-12 h-12 rounded object-contain border" />
+                )}
+                <div>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    disabled={uploadingSponsorId === "new"}
+                    onClick={() => document.getElementById("new-sponsor-logo")?.click()}
+                  >
+                    {uploadingSponsorId === "new" ? (
+                      <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                    ) : (
+                      <Upload className="w-4 h-4 mr-1" />
+                    )}
+                    Logo Yükle
+                  </Button>
+                  <input
+                    id="new-sponsor-logo"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => handleSponsorLogoUpload(e, null)}
+                  />
+                </div>
+              </div>
               <Input
                 value={newSponsor.name}
                 onChange={(e) => setNewSponsor({ ...newSponsor, name: e.target.value })}
@@ -608,11 +701,15 @@ export default function Admin() {
                 type="number"
               />
               <Button 
-                onClick={() => createSponsor.mutate({
-                  ...newSponsor,
-                  code: newSponsor.code || undefined,
-                  discountPercent: newSponsor.discountPercent ? parseInt(newSponsor.discountPercent) : undefined,
-                })} 
+                onClick={() => {
+                  createSponsor.mutate({
+                    ...newSponsor,
+                    code: newSponsor.code || undefined,
+                    discountPercent: newSponsor.discountPercent ? parseInt(newSponsor.discountPercent) : undefined,
+                    logoUrl: newSponsor.logoUrl || undefined,
+                  });
+                  setNewSponsor({ name: "", description: "", websiteUrl: "", code: "", discountPercent: "", logoUrl: "" });
+                }} 
                 disabled={!newSponsor.name || !newSponsor.websiteUrl}
               >
                 <Plus className="w-4 h-4 mr-2" />

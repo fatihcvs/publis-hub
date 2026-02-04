@@ -17,7 +17,8 @@ const upload = multer({
     destination: uploadDir,
     filename: (req, file, cb) => {
       const ext = path.extname(file.originalname);
-      cb(null, `logo-${Date.now()}${ext}`);
+      const prefix = (req as any).uploadPrefix || "logo";
+      cb(null, `${prefix}-${Date.now()}${ext}`);
     }
   }),
   limits: { fileSize: 5 * 1024 * 1024 },
@@ -91,6 +92,22 @@ export async function registerRoutes(
       res.json({ url });
     } catch (error) {
       console.error("Error uploading logo:", error);
+      res.status(500).json({ message: "Upload failed" });
+    }
+  });
+
+  app.post("/api/admin/upload-sponsor-logo", isAuthenticated, (req, res, next) => {
+    (req as any).uploadPrefix = "sponsor";
+    next();
+  }, upload.single("logo"), (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+      const url = `/uploads/${req.file.filename}`;
+      res.json({ url });
+    } catch (error) {
+      console.error("Error uploading sponsor logo:", error);
       res.status(500).json({ message: "Upload failed" });
     }
   });

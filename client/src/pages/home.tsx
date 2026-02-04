@@ -177,7 +177,16 @@ export default function Home() {
                   data-testid={`card-sponsor-${sponsor.id}`}
                 >
                   <div className="flex items-center justify-between gap-3">
-                    <span className="font-semibold">{sponsor.name}</span>
+                    <div className="flex items-center gap-3">
+                      {sponsor.logoUrl && (
+                        <img 
+                          src={sponsor.logoUrl} 
+                          alt={sponsor.name} 
+                          className="w-10 h-10 rounded object-contain"
+                        />
+                      )}
+                      <span className="font-semibold">{sponsor.name}</span>
+                    </div>
                     {sponsor.code && (
                       <div className="flex items-center gap-2">
                         <code className="font-mono text-sm text-primary">{sponsor.code}</code>
