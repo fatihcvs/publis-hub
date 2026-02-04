@@ -26,6 +26,7 @@ const platformIcons: Record<string, React.ComponentType<{ className?: string }>>
 
 export default function Home() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [copiedSponsorId, setCopiedSponsorId] = useState<string | null>(null);
   const { toast } = useToast();
 
   const { data: profile, isLoading: profileLoading } = useQuery<Profile>({
@@ -63,6 +64,24 @@ export default function Home() {
         description: `${code.code} panoya kopyalandı.`,
       });
       setTimeout(() => setCopiedId(null), 2000);
+    } catch {
+      toast({
+        title: "Kopyalama başarısız",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const copySponsorCode = async (sponsor: Sponsor) => {
+    if (!sponsor.code) return;
+    try {
+      await navigator.clipboard.writeText(sponsor.code);
+      setCopiedSponsorId(sponsor.id);
+      toast({
+        title: "Kod kopyalandı!",
+        description: `${sponsor.code} panoya kopyalandı.`,
+      });
+      setTimeout(() => setCopiedSponsorId(null), 2000);
     } catch {
       toast({
         title: "Kopyalama başarısız",
@@ -131,17 +150,55 @@ export default function Home() {
                 <p className="text-sm font-medium text-muted-foreground text-center">Sponsorlar</p>
               </div>
               {activeSponsors.map((sponsor) => (
-                <a
+                <div
                   key={sponsor.id}
-                  href={sponsor.websiteUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 p-4 rounded-md border border-border bg-card hover-elevate transition-colors"
-                  data-testid={`link-sponsor-${sponsor.id}`}
+                  className="p-4 rounded-md border border-border bg-card"
+                  data-testid={`card-sponsor-${sponsor.id}`}
                 >
-                  <span className="font-medium flex-1">{sponsor.name}</span>
-                  <ExternalLink className="w-4 h-4 text-muted-foreground" />
-                </a>
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="font-semibold">{sponsor.name}</span>
+                    {sponsor.code && (
+                      <div className="flex items-center gap-2">
+                        <code className="font-mono text-sm text-primary">{sponsor.code}</code>
+                        {sponsor.discountPercent && (
+                          <Badge variant="secondary" className="text-xs">
+                            <Percent className="w-3 h-3 mr-1" />
+                            {sponsor.discountPercent}
+                          </Badge>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => copySponsorCode(sponsor)}
+                          data-testid={`button-copy-sponsor-${sponsor.id}`}
+                        >
+                          {copiedSponsorId === sponsor.id ? (
+                            <Check className="w-4 h-4 text-primary" />
+                          ) : (
+                            <Copy className="w-4 h-4" />
+                          )}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                  {sponsor.description && (
+                    <p className="text-sm text-muted-foreground mt-2">
+                      {sponsor.description}
+                    </p>
+                  )}
+                  <div className="mt-3">
+                    <a
+                      href={sponsor.websiteUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-primary hover:underline flex items-center gap-1"
+                      data-testid={`link-sponsor-${sponsor.id}`}
+                    >
+                      Siteye Git
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                </div>
               ))}
             </>
           )}

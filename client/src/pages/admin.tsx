@@ -18,7 +18,7 @@ export default function Admin() {
 
   const [profileForm, setProfileForm] = useState({ name: "", title: "", bio: "", avatarUrl: "" });
   const [newLink, setNewLink] = useState({ platform: "", url: "" });
-  const [newSponsor, setNewSponsor] = useState({ name: "", description: "", websiteUrl: "" });
+  const [newSponsor, setNewSponsor] = useState({ name: "", description: "", websiteUrl: "", code: "", discountPercent: "" });
   const [newCode, setNewCode] = useState({ code: "", description: "", discountPercent: "", url: "", sponsorId: "" });
 
   const { data: profile } = useQuery<Profile>({ queryKey: ["/api/profile"] });
@@ -70,11 +70,11 @@ export default function Admin() {
   });
 
   const createSponsor = useMutation({
-    mutationFn: (data: { name: string; description: string; websiteUrl: string }) =>
+    mutationFn: (data: { name: string; description: string; websiteUrl: string; code?: string; discountPercent?: number }) =>
       apiRequest("POST", "/api/admin/sponsors", { ...data, displayOrder: sponsors.length, isActive: true }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/sponsors"] });
-      setNewSponsor({ name: "", description: "", websiteUrl: "" });
+      setNewSponsor({ name: "", description: "", websiteUrl: "", code: "", discountPercent: "" });
       toast({ title: "Sponsor eklendi" });
     },
   });
@@ -220,7 +220,12 @@ export default function Admin() {
           <CardContent className="space-y-4">
             {sponsors.map((sponsor) => (
               <div key={sponsor.id} className="flex items-center gap-2 p-2 border rounded-md">
-                <span className="flex-1 font-medium">{sponsor.name}</span>
+                <div className="flex-1">
+                  <span className="font-medium">{sponsor.name}</span>
+                  {sponsor.code && (
+                    <code className="ml-2 text-sm text-primary font-mono">{sponsor.code}</code>
+                  )}
+                </div>
                 <Button variant="ghost" size="icon" onClick={() => deleteSponsor.mutate(sponsor.id)}>
                   <Trash2 className="w-4 h-4 text-destructive" />
                 </Button>
@@ -242,7 +247,25 @@ export default function Admin() {
                 onChange={(e) => setNewSponsor({ ...newSponsor, websiteUrl: e.target.value })}
                 placeholder="Web sitesi URL"
               />
-              <Button onClick={() => createSponsor.mutate(newSponsor)} disabled={!newSponsor.name || !newSponsor.websiteUrl}>
+              <Input
+                value={newSponsor.code}
+                onChange={(e) => setNewSponsor({ ...newSponsor, code: e.target.value })}
+                placeholder="İndirim kodu (opsiyonel)"
+              />
+              <Input
+                value={newSponsor.discountPercent}
+                onChange={(e) => setNewSponsor({ ...newSponsor, discountPercent: e.target.value })}
+                placeholder="İndirim % (opsiyonel)"
+                type="number"
+              />
+              <Button 
+                onClick={() => createSponsor.mutate({
+                  ...newSponsor,
+                  code: newSponsor.code || undefined,
+                  discountPercent: newSponsor.discountPercent ? parseInt(newSponsor.discountPercent) : undefined,
+                })} 
+                disabled={!newSponsor.name || !newSponsor.websiteUrl}
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 Sponsor Ekle
               </Button>

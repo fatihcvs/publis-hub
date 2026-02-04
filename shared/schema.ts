@@ -27,6 +27,8 @@ export const sponsors = pgTable("sponsors", {
   description: text("description"),
   logoUrl: text("logo_url"),
   websiteUrl: text("website_url").notNull(),
+  code: text("code"),
+  discountPercent: integer("discount_percent"),
   displayOrder: integer("display_order").notNull().default(0),
   isActive: boolean("is_active").notNull().default(true),
 });
