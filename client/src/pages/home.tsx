@@ -227,7 +227,7 @@ export default function Home() {
           {activeCodes.length > 0 && (
             <>
               <div className="mt-6 mb-2">
-                <p className="text-sm font-medium text-muted-foreground text-center">Oyun Satın Alma Kodları</p>
+                <p className="text-sm font-medium text-muted-foreground text-center">Oyunlar</p>
               </div>
               <div className="flex flex-col gap-3">
                 {activeCodes.map((code) => {

@@ -401,7 +401,7 @@ export default function Admin() {
                       />
                       <Input
                         value={editingSponsor.discountPercent?.toString() || ""}
-                        onChange={(e) => setEditingSponsor({ ...editingSponsor, discountPercent: e.target.value ? parseInt(e.target.value) : undefined })}
+                        onChange={(e) => setEditingSponsor({ ...editingSponsor, discountPercent: e.target.value ? parseInt(e.target.value) : null })}
                         placeholder="İndirim %"
                         type="number"
                         className="w-24"
@@ -478,7 +478,7 @@ export default function Admin() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Oyun Kodları</CardTitle>
+            <CardTitle>Oyunlar</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {discountCodes.map((code) => (
@@ -494,7 +494,7 @@ export default function Admin() {
                       />
                       <Input
                         value={editingCode.discountPercent?.toString() || ""}
-                        onChange={(e) => setEditingCode({ ...editingCode, discountPercent: e.target.value ? parseInt(e.target.value) : undefined })}
+                        onChange={(e) => setEditingCode({ ...editingCode, discountPercent: e.target.value ? parseInt(e.target.value) : null })}
                         placeholder="İndirim %"
                         type="number"
                         className="w-24"
