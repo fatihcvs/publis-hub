@@ -123,13 +123,20 @@ export default function Admin() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Link href="/">
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" data-testid="button-back-home">
                 <ArrowLeft className="w-4 h-4" />
               </Button>
             </Link>
-            <h1 className="text-xl font-semibold">Admin Panel</h1>
+            <div>
+              <h1 className="text-xl font-semibold">Admin Panel</h1>
+              {user && (
+                <p className="text-xs text-muted-foreground">
+                  Hoş geldin, {user.firstName || user.email || 'Admin'}
+                </p>
+              )}
+            </div>
           </div>
-          <Button variant="outline" size="sm" onClick={() => logout()}>
+          <Button variant="outline" size="sm" onClick={() => logout()} data-testid="button-logout">
             <LogOut className="w-4 h-4 mr-2" />
             Çıkış
           </Button>
