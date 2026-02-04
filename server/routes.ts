@@ -6,11 +6,49 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  // put application routes here
-  // prefix all routes with /api
+  
+  app.get("/api/profile", async (req, res) => {
+    try {
+      const result = await storage.getProfile();
+      if (!result) {
+        return res.status(404).json({ message: "Profile not found" });
+      }
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
 
-  // use storage to perform CRUD operations on the storage interface
-  // e.g. storage.insertUser(user) or storage.getUserByUsername(username)
+  app.get("/api/social-links", async (req, res) => {
+    try {
+      const result = await storage.getSocialLinks();
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching social links:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/sponsors", async (req, res) => {
+    try {
+      const result = await storage.getSponsors();
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching sponsors:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/discount-codes", async (req, res) => {
+    try {
+      const result = await storage.getDiscountCodes();
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching discount codes:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
 
   return httpServer;
 }
