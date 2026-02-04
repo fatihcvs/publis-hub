@@ -332,24 +332,26 @@ export default function Home() {
                           )}
                           <div>
                             <span className="font-semibold text-lg">{code.description || code.code}</span>
-                            <div className="flex items-center gap-2 mt-1">
-                              <code className="px-2 py-0.5 rounded bg-primary/10 font-mono text-sm text-primary font-semibold" data-testid={`text-discount-code-${code.id}`}>
-                                {code.code}
-                              </code>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => copyCode(code)}
-                                className="h-6 px-2"
-                                data-testid={`button-copy-code-${code.id}`}
-                              >
-                                {isCopied ? (
-                                  <Check className="w-3.5 h-3.5 text-green-500" />
-                                ) : (
-                                  <Copy className="w-3.5 h-3.5" />
-                                )}
-                              </Button>
-                            </div>
+                            {code.code && code.code.trim() && code.code.trim() !== "-" && (
+                              <div className="flex items-center gap-2 mt-1">
+                                <code className="px-2 py-0.5 rounded bg-primary/10 font-mono text-sm text-primary font-semibold" data-testid={`text-discount-code-${code.id}`}>
+                                  {code.code}
+                                </code>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => copyCode(code)}
+                                  className="h-6 px-2"
+                                  data-testid={`button-copy-code-${code.id}`}
+                                >
+                                  {isCopied ? (
+                                    <Check className="w-3.5 h-3.5 text-green-500" />
+                                  ) : (
+                                    <Copy className="w-3.5 h-3.5" />
+                                  )}
+                                </Button>
+                              </div>
+                            )}
                           </div>
                         </div>
                         {code.url && (
