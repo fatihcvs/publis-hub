@@ -35,19 +35,27 @@ export default function Admin() {
 
     setIsUploading(true);
     try {
-      const formData = new FormData();
-      formData.append("logo", file);
-
+      // Step 1: Get presigned URL
       const response = await fetch("/api/admin/upload-logo", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
       });
 
       if (!response.ok) throw new Error("Upload failed");
 
-      const data = await response.json();
-      setProfileForm({ ...profileForm, avatarUrl: data.url });
+      const { uploadURL, objectPath } = await response.json();
+      
+      // Step 2: Upload directly to presigned URL
+      const uploadResponse = await fetch(uploadURL, {
+        method: "PUT",
+        body: file,
+        headers: { "Content-Type": file.type },
+      });
+
+      if (!uploadResponse.ok) throw new Error("Upload to storage failed");
+
+      setProfileForm({ ...profileForm, avatarUrl: objectPath });
       toast({ title: "Logo yüklendi" });
     } catch (error) {
       toast({ title: "Yükleme başarısız", variant: "destructive" });
@@ -62,23 +70,30 @@ export default function Admin() {
 
     setUploadingSponsorId(sponsorId || "new");
     try {
-      const formData = new FormData();
-      formData.append("logo", file);
-
+      // Step 1: Get presigned URL
       const response = await fetch("/api/admin/upload-sponsor-logo", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
       });
 
       if (!response.ok) throw new Error("Upload failed");
 
-      const data = await response.json();
+      const { uploadURL, objectPath } = await response.json();
+      
+      // Step 2: Upload directly to presigned URL
+      const uploadResponse = await fetch(uploadURL, {
+        method: "PUT",
+        body: file,
+        headers: { "Content-Type": file.type },
+      });
+
+      if (!uploadResponse.ok) throw new Error("Upload to storage failed");
       
       if (sponsorId && editingSponsor) {
-        setEditingSponsor({ ...editingSponsor, logoUrl: data.url });
+        setEditingSponsor({ ...editingSponsor, logoUrl: objectPath });
       } else {
-        setNewSponsor({ ...newSponsor, logoUrl: data.url });
+        setNewSponsor({ ...newSponsor, logoUrl: objectPath });
       }
       toast({ title: "Logo yüklendi" });
     } catch (error) {
@@ -94,23 +109,30 @@ export default function Admin() {
 
     setUploadingGameId(gameId || "new");
     try {
-      const formData = new FormData();
-      formData.append("logo", file);
-
+      // Step 1: Get presigned URL
       const response = await fetch("/api/admin/upload-game-logo", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
       });
 
       if (!response.ok) throw new Error("Upload failed");
 
-      const data = await response.json();
+      const { uploadURL, objectPath } = await response.json();
+      
+      // Step 2: Upload directly to presigned URL
+      const uploadResponse = await fetch(uploadURL, {
+        method: "PUT",
+        body: file,
+        headers: { "Content-Type": file.type },
+      });
+
+      if (!uploadResponse.ok) throw new Error("Upload to storage failed");
       
       if (gameId && editingCode) {
-        setEditingCode({ ...editingCode, logoUrl: data.url });
+        setEditingCode({ ...editingCode, logoUrl: objectPath });
       } else {
-        setNewCode({ ...newCode, logoUrl: data.url });
+        setNewCode({ ...newCode, logoUrl: objectPath });
       }
       toast({ title: "Logo yüklendi" });
     } catch (error) {
@@ -226,11 +248,11 @@ export default function Admin() {
   });
 
   const createCode = useMutation({
-    mutationFn: (data: { code: string; description: string; discountPercent?: number; url: string; sponsorId?: string }) =>
+    mutationFn: (data: { code: string; description: string; discountPercent?: number; url: string; sponsorId?: string; logoUrl?: string }) =>
       apiRequest("POST", "/api/admin/discount-codes", { ...data, displayOrder: discountCodes.length, isActive: true }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/discount-codes"] });
-      setNewCode({ code: "", description: "", discountPercent: "", url: "", sponsorId: "" });
+      setNewCode({ code: "", description: "", discountPercent: "", url: "", sponsorId: "", logoUrl: "" });
       toast({ title: "Kod eklendi" });
     },
   });

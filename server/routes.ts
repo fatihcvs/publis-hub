@@ -3,36 +3,9 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { isAuthenticated } from "./replit_integrations/auth";
 import { insertProfileSchema, insertSocialLinkSchema, insertSponsorSchema, insertDiscountCodeSchema } from "@shared/schema";
-import multer from "multer";
-import path from "path";
-import fs from "fs";
+import { registerObjectStorageRoutes, ObjectStorageService } from "./replit_integrations/object_storage";
 
-const uploadDir = path.join(process.cwd(), "client/public/uploads");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-const upload = multer({
-  storage: multer.diskStorage({
-    destination: uploadDir,
-    filename: (req, file, cb) => {
-      const ext = path.extname(file.originalname);
-      const prefix = (req as any).uploadPrefix || "logo";
-      cb(null, `${prefix}-${Date.now()}${ext}`);
-    }
-  }),
-  limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png|gif|webp/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
-    if (extname && mimetype) {
-      cb(null, true);
-    } else {
-      cb(new Error("Only image files allowed"));
-    }
-  }
-});
+const objectStorageService = new ObjectStorageService();
 
 export async function registerRoutes(
   httpServer: Server,
@@ -82,48 +55,39 @@ export async function registerRoutes(
     }
   });
 
-  // Admin routes - protected
-  app.post("/api/admin/upload-logo", isAuthenticated, upload.single("logo"), (req, res) => {
+  // Register object storage routes
+  registerObjectStorageRoutes(app);
+
+  // Admin routes - protected upload endpoints using Object Storage
+  app.post("/api/admin/upload-logo", isAuthenticated, async (req, res) => {
     try {
-      if (!req.file) {
-        return res.status(400).json({ message: "No file uploaded" });
-      }
-      const url = `/uploads/${req.file.filename}`;
-      res.json({ url });
+      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+      const objectPath = objectStorageService.normalizeObjectEntityPath(uploadURL);
+      res.json({ uploadURL, objectPath });
     } catch (error) {
-      console.error("Error uploading logo:", error);
+      console.error("Error generating upload URL:", error);
       res.status(500).json({ message: "Upload failed" });
     }
   });
 
-  app.post("/api/admin/upload-sponsor-logo", isAuthenticated, (req, res, next) => {
-    (req as any).uploadPrefix = "sponsor";
-    next();
-  }, upload.single("logo"), (req, res) => {
+  app.post("/api/admin/upload-sponsor-logo", isAuthenticated, async (req, res) => {
     try {
-      if (!req.file) {
-        return res.status(400).json({ message: "No file uploaded" });
-      }
-      const url = `/uploads/${req.file.filename}`;
-      res.json({ url });
+      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+      const objectPath = objectStorageService.normalizeObjectEntityPath(uploadURL);
+      res.json({ uploadURL, objectPath });
     } catch (error) {
-      console.error("Error uploading sponsor logo:", error);
+      console.error("Error generating upload URL:", error);
       res.status(500).json({ message: "Upload failed" });
     }
   });
 
-  app.post("/api/admin/upload-game-logo", isAuthenticated, (req, res, next) => {
-    (req as any).uploadPrefix = "game";
-    next();
-  }, upload.single("logo"), (req, res) => {
+  app.post("/api/admin/upload-game-logo", isAuthenticated, async (req, res) => {
     try {
-      if (!req.file) {
-        return res.status(400).json({ message: "No file uploaded" });
-      }
-      const url = `/uploads/${req.file.filename}`;
-      res.json({ url });
+      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+      const objectPath = objectStorageService.normalizeObjectEntityPath(uploadURL);
+      res.json({ uploadURL, objectPath });
     } catch (error) {
-      console.error("Error uploading game logo:", error);
+      console.error("Error generating upload URL:", error);
       res.status(500).json({ message: "Upload failed" });
     }
   });
