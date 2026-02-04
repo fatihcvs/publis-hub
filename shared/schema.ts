@@ -43,6 +43,7 @@ export const discountCodes = pgTable("discount_codes", {
   description: text("description"),
   discountPercent: integer("discount_percent"),
   url: text("url"),
+  logoUrl: text("logo_url"),
   displayOrder: integer("display_order").notNull().default(0),
   isActive: boolean("is_active").notNull().default(true),
 });

@@ -112,6 +112,22 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/admin/upload-game-logo", isAuthenticated, (req, res, next) => {
+    (req as any).uploadPrefix = "game";
+    next();
+  }, upload.single("logo"), (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+      const url = `/uploads/${req.file.filename}`;
+      res.json({ url });
+    } catch (error) {
+      console.error("Error uploading game logo:", error);
+      res.status(500).json({ message: "Upload failed" });
+    }
+  });
+
   app.put("/api/admin/profile", isAuthenticated, async (req, res) => {
     try {
       const existing = await storage.getProfile();

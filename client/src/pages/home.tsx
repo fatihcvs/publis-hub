@@ -323,9 +323,13 @@ export default function Home() {
                     >
                       <div className="flex items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
-                          <div className="p-2.5 rounded-lg bg-gradient-to-br from-primary to-primary/80 text-white shadow-lg">
-                            <Gamepad2 className="w-5 h-5" />
-                          </div>
+                          {code.logoUrl ? (
+                            <img src={code.logoUrl} alt={code.description || "Game"} className="w-12 h-12 object-cover rounded-lg shadow-lg" />
+                          ) : (
+                            <div className="p-2.5 rounded-lg bg-gradient-to-br from-primary to-primary/80 text-white shadow-lg">
+                              <Gamepad2 className="w-5 h-5" />
+                            </div>
+                          )}
                           <div>
                             <span className="font-semibold text-lg">{code.description || code.code}</span>
                             <div className="flex items-center gap-2 mt-1">

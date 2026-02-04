@@ -19,7 +19,7 @@ export default function Admin() {
   const [profileForm, setProfileForm] = useState({ name: "", title: "", bio: "", avatarUrl: "" });
   const [newLink, setNewLink] = useState({ platform: "", url: "", followerCount: "", badge: "", description: "" });
   const [newSponsor, setNewSponsor] = useState({ name: "", description: "", websiteUrl: "", code: "", discountPercent: "", logoUrl: "" });
-  const [newCode, setNewCode] = useState({ code: "", description: "", discountPercent: "", url: "", sponsorId: "" });
+  const [newCode, setNewCode] = useState({ code: "", description: "", discountPercent: "", url: "", sponsorId: "", logoUrl: "" });
   
   const [editingLink, setEditingLink] = useState<SocialLink | null>(null);
   const [editingSponsor, setEditingSponsor] = useState<Sponsor | null>(null);
@@ -27,6 +27,7 @@ export default function Admin() {
   const [isReordering, setIsReordering] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadingSponsorId, setUploadingSponsorId] = useState<string | null>(null);
+  const [uploadingGameId, setUploadingGameId] = useState<string | null>(null);
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -84,6 +85,38 @@ export default function Admin() {
       toast({ title: "Yükleme başarısız", variant: "destructive" });
     } finally {
       setUploadingSponsorId(null);
+    }
+  };
+
+  const handleGameLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>, gameId: string | null) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingGameId(gameId || "new");
+    try {
+      const formData = new FormData();
+      formData.append("logo", file);
+
+      const response = await fetch("/api/admin/upload-game-logo", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+
+      if (!response.ok) throw new Error("Upload failed");
+
+      const data = await response.json();
+      
+      if (gameId && editingCode) {
+        setEditingCode({ ...editingCode, logoUrl: data.url });
+      } else {
+        setNewCode({ ...newCode, logoUrl: data.url });
+      }
+      toast({ title: "Logo yüklendi" });
+    } catch (error) {
+      toast({ title: "Yükleme başarısız", variant: "destructive" });
+    } finally {
+      setUploadingGameId(null);
     }
   };
 
@@ -212,12 +245,13 @@ export default function Admin() {
 
   const updateCode = useMutation({
     mutationFn: (data: { id: string; updates: Partial<DiscountCode> }) => {
-      const { code, description, url, discountPercent } = data.updates;
+      const { code, description, url, discountPercent, logoUrl } = data.updates;
       const sanitized = {
         code,
         description: description || undefined,
         url: url || undefined,
         discountPercent: discountPercent !== null && discountPercent !== undefined ? Number(discountPercent) : undefined,
+        logoUrl: logoUrl || undefined,
       };
       return apiRequest("PUT", `/api/admin/discount-codes/${data.id}`, sanitized);
     },
@@ -729,6 +763,24 @@ export default function Admin() {
               <div key={code.id} className="p-3 border rounded-md space-y-2">
                 {editingCode?.id === code.id ? (
                   <div className="space-y-2">
+                    <div className="flex items-center gap-3">
+                      <div className="relative">
+                        {editingCode.logoUrl ? (
+                          <img src={editingCode.logoUrl} alt="Logo" className="w-16 h-16 object-cover rounded-md" />
+                        ) : (
+                          <div className="w-16 h-16 bg-muted rounded-md flex items-center justify-center">
+                            <Upload className="w-6 h-6 text-muted-foreground" />
+                          </div>
+                        )}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="absolute inset-0 opacity-0 cursor-pointer"
+                          disabled={uploadingGameId === code.id}
+                          onChange={(e) => handleGameLogoUpload(e, code.id)}
+                        />
+                      </div>
+                    </div>
                     <Input
                       value={editingCode.description || ""}
                       onChange={(e) => setEditingCode({ ...editingCode, description: e.target.value })}
@@ -763,6 +815,9 @@ export default function Admin() {
                         <ChevronDown className="w-4 h-4" />
                       </Button>
                     </div>
+                    {code.logoUrl && (
+                      <img src={code.logoUrl} alt="Logo" className="w-10 h-10 object-cover rounded-md" />
+                    )}
                     <span className="font-medium">{code.description || "İsimsiz"}</span>
                     <code className="font-mono text-sm text-primary">{code.code}</code>
                     <span className="flex-1"></span>
@@ -778,6 +833,25 @@ export default function Admin() {
             ))}
             <div className="space-y-2 p-3 border rounded-md bg-muted/30">
               <div className="text-sm font-medium mb-2">Yeni Oyun Ekle</div>
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  {newCode.logoUrl ? (
+                    <img src={newCode.logoUrl} alt="Logo" className="w-16 h-16 object-cover rounded-md" />
+                  ) : (
+                    <div className="w-16 h-16 bg-muted rounded-md flex items-center justify-center">
+                      <Upload className="w-6 h-6 text-muted-foreground" />
+                    </div>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                    disabled={uploadingGameId === "new"}
+                    onChange={(e) => handleGameLogoUpload(e, null)}
+                  />
+                </div>
+                <span className="text-sm text-muted-foreground">Logo yükle</span>
+              </div>
               <Input
                 value={newCode.description}
                 onChange={(e) => setNewCode({ ...newCode, description: e.target.value })}
@@ -797,10 +871,11 @@ export default function Admin() {
                 onClick={() => {
                   createCode.mutate({
                     ...newCode,
+                    logoUrl: newCode.logoUrl || undefined,
                     discountPercent: undefined,
                     sponsorId: undefined,
                   });
-                  setNewCode({ code: "", description: "", discountPercent: "", url: "", sponsorId: "" });
+                  setNewCode({ code: "", description: "", discountPercent: "", url: "", sponsorId: "", logoUrl: "" });
                 }} 
                 disabled={!newCode.code}
               >
