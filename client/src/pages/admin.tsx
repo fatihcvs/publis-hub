@@ -118,7 +118,7 @@ export default function Admin() {
         description: description || undefined,
         websiteUrl,
         code: code || undefined,
-        discountPercent: discountPercent ? Number(discountPercent) : undefined,
+        discountPercent: discountPercent !== null && discountPercent !== undefined ? Number(discountPercent) : undefined,
       };
       return apiRequest("PUT", `/api/admin/sponsors/${data.id}`, sanitized);
     },
@@ -154,7 +154,7 @@ export default function Admin() {
         code,
         description: description || undefined,
         url: url || undefined,
-        discountPercent: discountPercent ? Number(discountPercent) : undefined,
+        discountPercent: discountPercent !== null && discountPercent !== undefined ? Number(discountPercent) : undefined,
       };
       return apiRequest("PUT", `/api/admin/discount-codes/${data.id}`, sanitized);
     },
