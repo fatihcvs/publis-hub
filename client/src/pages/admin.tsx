@@ -174,13 +174,14 @@ export default function Admin() {
 
   const updateSponsor = useMutation({
     mutationFn: (data: { id: string; updates: Partial<Sponsor> }) => {
-      const { name, description, websiteUrl, code, discountPercent } = data.updates;
+      const { name, description, websiteUrl, code, discountPercent, logoUrl } = data.updates;
       const sanitized = {
         name,
         description: description || undefined,
         websiteUrl,
-        code: code || undefined,
-        discountPercent: discountPercent !== null && discountPercent !== undefined ? Number(discountPercent) : undefined,
+        code: code && code.trim() ? code.trim() : null,
+        discountPercent: discountPercent !== null && discountPercent !== undefined && discountPercent > 0 ? Number(discountPercent) : null,
+        logoUrl: logoUrl || undefined,
       };
       return apiRequest("PUT", `/api/admin/sponsors/${data.id}`, sanitized);
     },

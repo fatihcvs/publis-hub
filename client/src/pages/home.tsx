@@ -87,7 +87,7 @@ export default function Home() {
   };
 
   const copySponsorCode = async (sponsor: Sponsor) => {
-    if (!sponsor.code) return;
+    if (!sponsor.code || !sponsor.code.trim()) return;
     try {
       await navigator.clipboard.writeText(sponsor.code);
       setCopiedSponsorId(sponsor.id);
@@ -250,12 +250,12 @@ export default function Home() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
                           <h3 className="font-semibold text-lg">{sponsor.name}</h3>
-                          {sponsor.code && (
+                          {sponsor.code && sponsor.code.trim() && (
                             <div className="flex items-center gap-2">
                               <code className="px-2 py-1 rounded-md bg-primary/10 font-mono text-sm text-primary font-semibold">
                                 {sponsor.code}
                               </code>
-                              {sponsor.discountPercent !== null && sponsor.discountPercent !== undefined && (
+                              {sponsor.discountPercent !== null && sponsor.discountPercent !== undefined && sponsor.discountPercent > 0 && (
                                 <Badge className="bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20">
                                   <Percent className="w-3 h-3 mr-1" />
                                   {sponsor.discountPercent}
