@@ -125,23 +125,32 @@ export default function Home() {
             );
           })}
 
-          {activeSponsors.map((sponsor) => (
-            <a
-              key={sponsor.id}
-              href={sponsor.websiteUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 p-4 rounded-md border border-border bg-card hover-elevate transition-colors"
-              data-testid={`link-sponsor-${sponsor.id}`}
-            >
-              <span className="font-medium flex-1">{sponsor.name}</span>
-              <ExternalLink className="w-4 h-4 text-muted-foreground" />
-            </a>
-          ))}
+          {activeSponsors.length > 0 && (
+            <>
+              <div className="mt-6 mb-2">
+                <p className="text-sm font-medium text-muted-foreground text-center">Sponsorlar</p>
+              </div>
+              {activeSponsors.map((sponsor) => (
+                <a
+                  key={sponsor.id}
+                  href={sponsor.websiteUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 p-4 rounded-md border border-border bg-card hover-elevate transition-colors"
+                  data-testid={`link-sponsor-${sponsor.id}`}
+                >
+                  <span className="font-medium flex-1">{sponsor.name}</span>
+                  <ExternalLink className="w-4 h-4 text-muted-foreground" />
+                </a>
+              ))}
+            </>
+          )}
 
           {activeCodes.length > 0 && (
-            <div className="mt-4 pt-4 border-t border-border">
-              <p className="text-sm text-muted-foreground text-center mb-3">İndirim Kodları</p>
+            <>
+              <div className="mt-6 mb-2">
+                <p className="text-sm font-medium text-muted-foreground text-center">Oyun Satın Alma Kodları</p>
+              </div>
               <div className="flex flex-col gap-3">
                 {activeCodes.map((code) => {
                   const isCopied = copiedId === code.id;
@@ -184,7 +193,7 @@ export default function Home() {
                   );
                 })}
               </div>
-            </div>
+            </>
           )}
         </div>
 
