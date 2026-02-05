@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useToast } from "@/hooks/use-toast";
-import { Copy, Check, ExternalLink, Percent, Gamepad2, Users, Star } from "lucide-react";
+import { Copy, Check, ExternalLink, Percent, Gamepad2, Users, Star, Mail } from "lucide-react";
 import { SiKick, SiYoutube, SiX, SiInstagram, SiDiscord, SiTiktok, SiTwitch, SiGithub, SiFacebook, SiLinkedin } from "react-icons/si";
 import { Globe } from "lucide-react";
 import type { Profile, SocialLink, Sponsor, DiscountCode } from "@shared/schema";
@@ -373,6 +373,23 @@ export default function Home() {
               </div>
             </div>
           )}
+        </div>
+
+        {/* Contact Section */}
+        <div className="mt-12">
+          <a
+            href="mailto:contact@thepublishers.info"
+            className="group flex items-center justify-center gap-3 px-6 py-4 rounded-xl bg-card/50 border border-border/50 hover:border-primary/50 hover:bg-card transition-all duration-300"
+            data-testid="link-contact-email"
+          >
+            <div className="p-2 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
+              <Mail className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex flex-col items-start">
+              <span className="text-xs text-muted-foreground">İletişim</span>
+              <span className="text-sm font-medium text-foreground">contact@thepublishers.info</span>
+            </div>
+          </a>
         </div>
 
         {/* Footer */}
