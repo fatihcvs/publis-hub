@@ -85,6 +85,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteSponsor(id: string): Promise<void> {
+    // First, unlink any discount codes that reference this sponsor
+    await db.update(discountCodes).set({ sponsorId: null }).where(eq(discountCodes.sponsorId, id));
+    // Then delete the sponsor
     await db.delete(sponsors).where(eq(sponsors.id, id));
   }
 
