@@ -247,15 +247,18 @@ export default function Home() {
 
       <main className="relative max-w-md mx-auto px-4 py-16">
         <div className="flex flex-col gap-4">
-          {(profile?.layoutConfig || [
-            { id: "bio", visible: true, width: "full" },
-            { id: "lol", visible: true, width: "full" },
-            { id: "kick", visible: true, width: "full" },
-            { id: "socials", visible: true, width: "full" },
-            { id: "sponsors", visible: true, width: "full" },
-            { id: "games", visible: true, width: "full" },
-            { id: "contact", visible: true, width: "full" }
-          ]).filter((section: any) => section.visible).map((section: any) => {
+          {(profile?.layoutConfig && (profile.layoutConfig as any[]).length > 0
+            ? (profile.layoutConfig as any[])
+            : [
+              { id: "bio", visible: true, width: "full" },
+              { id: "socials", visible: true, width: "full" },
+              { id: "kick", visible: true, width: "full" },
+              { id: "sponsors", visible: true, width: "full" },
+              { id: "lol", visible: false, width: "half" },
+              { id: "games", visible: true, width: "full" },
+              { id: "contact", visible: true, width: "full" }
+            ]
+          ).filter((section: any) => section.visible).map((section: any) => {
             const renderContent = () => {
               switch (section.id) {
                 case "bio":
@@ -329,6 +332,7 @@ export default function Home() {
                   if (!profile?.kickUsername) return null;
                   return <KickWidget username={profile.kickUsername} autoplay={profile.kickAutoplay ?? true} />;
                 case "lol":
+                  if (!profile?.lolWidgetEnabled) return null;
                   return <LoLWidget />;
                 case "age_verify":
                   return null; // Modal is handled globally
