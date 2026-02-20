@@ -5,14 +5,17 @@ import {
   socialLinks,
   sponsors,
   discountCodes,
+  games,
   type Profile,
   type SocialLink,
   type Sponsor,
   type DiscountCode,
+  type Game,
   type InsertProfile,
   type InsertSocialLink,
   type InsertSponsor,
   type InsertDiscountCode,
+  type InsertGame,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -34,6 +37,11 @@ export interface IStorage {
   createDiscountCode(data: InsertDiscountCode): Promise<DiscountCode>;
   updateDiscountCode(id: string, data: Partial<InsertDiscountCode>): Promise<DiscountCode | undefined>;
   deleteDiscountCode(id: string): Promise<void>;
+
+  getGames(): Promise<Game[]>;
+  createGame(data: InsertGame): Promise<Game>;
+  updateGame(id: string, data: Partial<InsertGame>): Promise<Game | undefined>;
+  deleteGame(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -107,6 +115,24 @@ export class DatabaseStorage implements IStorage {
 
   async deleteDiscountCode(id: string): Promise<void> {
     await db.delete(discountCodes).where(eq(discountCodes.id, id));
+  }
+
+  async getGames(): Promise<Game[]> {
+    return db.select().from(games);
+  }
+
+  async createGame(data: InsertGame): Promise<Game> {
+    const [result] = await db.insert(games).values(data).returning();
+    return result;
+  }
+
+  async updateGame(id: string, data: Partial<InsertGame>): Promise<Game | undefined> {
+    const [result] = await db.update(games).set(data).where(eq(games.id, id)).returning();
+    return result;
+  }
+
+  async deleteGame(id: string): Promise<void> {
+    await db.delete(games).where(eq(games.id, id));
   }
 }
 

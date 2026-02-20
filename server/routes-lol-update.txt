@@ -1,0 +1,16 @@
+  // League of Legends API - supports Riot ID format (GameName#TAG)
+  app.get("/api/lol/summoner/:region/:name/:tag?", async (req, res) => {
+    try {
+      const { region, name, tag } = req.params;
+      const { fetchLoLSummonerData } = await import("./services/lol-scraper");
+      
+      const data = await fetchLoLSummonerData(name, region, tag || 'EUW');
+      res.json({ success: true, data });
+    } catch (error) {
+      console.error("Error fetching LoL data:", error);
+      res.status(500).json({ success: false, message: "Failed to fetch summoner data" });
+    }
+  });
+
+  return httpServer;
+}

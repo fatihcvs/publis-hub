@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
@@ -16,13 +17,19 @@ declare module "http" {
 
 app.use(
   express.json({
+    limit: '50mb', // Increased limit for large file uploads
     verify: (req, _res, buf) => {
       req.rawBody = buf;
     },
   }),
 );
 
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: false, limit: '50mb' }));
+
+// Serve uploaded files statically
+import path from "path";
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {

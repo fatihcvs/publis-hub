@@ -14,7 +14,7 @@ export const sessions = pgTable(
 );
 
 // Admin email list - these emails will automatically get admin privileges
-export const ADMIN_EMAILS = ["golcuktalat@gmail.com"];
+export const ADMIN_EMAILS = ["golcuktalat@gmail.com", "fatihcvs55@gmail.com"];
 
 // User storage table.
 // (IMPORTANT) This table is mandatory for Replit Auth, don't drop it.
