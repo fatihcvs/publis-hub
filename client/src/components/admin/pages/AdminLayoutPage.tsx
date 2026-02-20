@@ -125,10 +125,22 @@ export function AdminLayoutPage() {
     const [layoutConfig, setLayoutConfig] = useState<LayoutSection[]>([]);
 
     useEffect(() => {
-        if (profile?.layoutConfig) {
+        if (profile?.layoutConfig && (profile.layoutConfig as LayoutSection[]).length > 0) {
             setLayoutConfig(profile.layoutConfig as LayoutSection[]);
+        } else if (profile !== undefined) {
+            // Default layout when no config saved yet
+            setLayoutConfig([
+                { id: "bio", width: "full", visible: true },
+                { id: "socials", width: "full", visible: true },
+                { id: "kick", width: "full", visible: true },
+                { id: "lol", width: "half", visible: false },
+                { id: "sponsors", width: "full", visible: true },
+                { id: "games", width: "full", visible: true },
+                { id: "contact", width: "full", visible: true },
+            ]);
         }
     }, [profile]);
+
 
     const sensors = useSensors(
         useSensor(PointerSensor),
