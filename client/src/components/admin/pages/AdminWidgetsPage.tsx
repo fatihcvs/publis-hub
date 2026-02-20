@@ -306,16 +306,34 @@ export function AdminWidgetsPage() {
                 </CardContent>
             </Card>
 
-            {/* Other Widgets - Kick, Announcement, etc. */}
+            {/* Kick Widget */}
             <Card>
                 <CardHeader>
-                    <CardTitle>Diğer Widget'lar</CardTitle>
-                    <CardDescription>Kick, Duyuru, CTA ve İstatistik widget'ları</CardDescription>
+                    <CardTitle>Kick Widget</CardTitle>
+                    <CardDescription>Kick canlı yayın widget'ını yapılandırın</CardDescription>
                 </CardHeader>
-                <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                        Diğer widget ayarları için eski admin panelini kullanın (geçici)
-                    </p>
+                <CardContent className="space-y-4">
+                    <div>
+                        <Label>Kick Kullanıcı Adı</Label>
+                        <Input
+                            value={widgetsForm.kickUsername}
+                            onChange={(e) => setWidgetsForm({ ...widgetsForm, kickUsername: e.target.value })}
+                            placeholder="kick kullanıcı adınız"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                            kick.com/ adresinden sonraki kullanıcı adınız. Boş bırakırsanız widget gösterilmez.
+                        </p>
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                            <Label>Otomatik Oynat</Label>
+                            <p className="text-sm text-muted-foreground">Yayın otomatik olarak oynasın</p>
+                        </div>
+                        <Switch
+                            checked={widgetsForm.kickAutoplay}
+                            onCheckedChange={(checked) => setWidgetsForm({ ...widgetsForm, kickAutoplay: checked })}
+                        />
+                    </div>
                 </CardContent>
             </Card>
 
