@@ -20,11 +20,18 @@ export function registerAuthRoutes(app: Express): void {
     if (username === adminUsername && password === adminPassword) {
       (req.session as any).isAuthenticated = true;
       (req.session as any).isAdmin = true;
-      res.json({ success: true });
+      req.session.save((err) => {
+        if (err) {
+          console.error("Session save error:", err);
+          return res.status(500).json({ message: "Session error" });
+        }
+        res.json({ success: true });
+      });
     } else {
       res.status(401).json({ message: "Geçersiz kullanıcı adı veya şifre" });
     }
   });
+
 
   // Logout
   app.get("/api/logout", (req, res) => {
