@@ -9,6 +9,10 @@ import { setupAuth, registerAuthRoutes } from "./replit_integrations/auth";
 const app = express();
 const httpServer = createServer(app);
 
+// Trust Nginx reverse proxy for secure cookies and correct IP detection
+app.set("trust proxy", 1);
+
+
 declare module "http" {
   interface IncomingMessage {
     rawBody: unknown;
