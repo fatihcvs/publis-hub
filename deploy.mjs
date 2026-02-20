@@ -52,7 +52,7 @@ async function uploadDir(sftp, conn, localDir, remoteDir) {
     if (entry.isDirectory()) {
       await uploadDir(sftp, conn, localPath, remotePath);
     } else {
-      process.stdout.write(`  → ${entry.name}\n`);
+      console.log(`  → ${entry.name}`);
       await uploadFile(sftp, localPath, remotePath);
     }
   }
@@ -60,26 +60,36 @@ async function uploadDir(sftp, conn, localDir, remoteDir) {
 
 (async () => {
   try {
-    console.log('🔗 Sunucuya bağlanılıyor...');
+    console.log('🔗 Bağlanılıyor...');
     const conn = await sshConnect();
-    console.log('✅ Bağlantı kuruldu.\n');
-
+    console.log('✅ Bağlandı\n');
     const sftp = await getSftp(conn);
 
-    // Create dist directory
-    await exec(conn, `mkdir -p ${REMOTE_BASE}/dist/public`);
+    // 1. Clean old assets
+    console.log('🧹 Eski dosyalar temizleniyor...');
+    await exec(conn, `rm -rf ${REMOTE_BASE}/dist/public/assets/*`);
+    console.log('✅ Eski dosyalar silindi\n');
 
-    // Upload client
-    console.log('📤 Client build (Layout fix) yükleniyor...');
+    // 2. Upload server bundle
+    console.log('📤 Server bundle yükleniyor...');
+    await uploadFile(sftp, path.join(LOCAL_DIST, 'index.cjs'), `${REMOTE_BASE}/dist/index.cjs`);
+    console.log('✅ Server OK\n');
+
+    // 3. Upload full client (index.html + assets)
+    console.log('📤 Client yükleniyor...');
     await uploadDir(sftp, conn, path.join(LOCAL_DIST, 'public'), `${REMOTE_BASE}/dist/public`);
-    console.log('✅ Client tamamlandı.\n');
+    console.log('✅ Client OK\n');
 
-    // Restart PM2
-    console.log('🔄 PM2 yeniden başlatılıyor...');
+    // 4. Restart PM2
+    console.log('🔄 PM2 restart...');
     await exec(conn, 'source /root/.nvm/nvm.sh 2>/dev/null; pm2 restart publis-hub');
 
+    // 5. Verify
+    console.log('\n=== Doğrulama ===');
+    await exec(conn, `ls -la ${REMOTE_BASE}/dist/public/assets/index-*.js`);
+
     conn.end();
-    console.log('\n✅ DEPLOY TAMAMLANDI!');
+    console.log('\n✅ CLEAN DEPLOY TAMAMLANDI!');
   } catch (err) {
     console.error('❌ Hata:', err.message);
   }
