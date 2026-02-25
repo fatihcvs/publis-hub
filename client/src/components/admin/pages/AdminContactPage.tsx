@@ -26,9 +26,9 @@ export function AdminContactPage() {
     useEffect(() => {
         if (profile) {
             setContactForm({
-                contactEmail: (profile as any).contactEmail || "",
-                contactPhone: (profile as any).contactPhone || "",
-                contactAddress: (profile as any).contactAddress || "",
+                contactEmail: profile.contactEmail || "",
+                contactPhone: profile.contactPhone || "",
+                contactAddress: profile.contactAddress || "",
             });
         }
     }, [profile]);

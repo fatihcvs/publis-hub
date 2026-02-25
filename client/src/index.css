@@ -4,6 +4,7 @@
 
 /* LIGHT MODE */
 :root {
+  --card-rgb: 255 255 255;
   --button-outline: rgba(0,0,0, .10);
   --badge-outline: rgba(0,0,0, .05);
   --opaque-button-border-intensity: -8;
@@ -88,6 +89,7 @@
 }
 
 .dark {
+  --card-rgb: 10 14 10;
   --button-outline: rgba(255,255,255, .10);
   --badge-outline: rgba(255,255,255, .05);
   --opaque-button-border-intensity: 9;

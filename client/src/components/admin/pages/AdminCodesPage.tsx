@@ -57,7 +57,7 @@ export function AdminCodesPage() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["/api/discount-codes"] });
             setNewCode({ code: "", description: "", discountPercent: "", url: "", sponsorId: "" });
-            toast({ title: "Oyun kodu eklendi" });
+            toast({ title: "İndirim kodu eklendi" });
         },
     });
 
@@ -120,7 +120,7 @@ export function AdminCodesPage() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-3xl font-bold">Oyunlar</h1>
+                <h1 className="text-3xl font-bold">İndirim Kodları</h1>
                 <p className="text-muted-foreground">Oyun kodlarınızı ve indirimlerinizi yönetin</p>
             </div>
 

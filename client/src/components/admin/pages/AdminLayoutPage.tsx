@@ -40,6 +40,7 @@ const SECTION_LABELS: Record<string, string> = {
     lol: "League of Legends",
     sponsors: "Sponsorlar",
     games: "Oyunlar",
+    codes: "İndirim Kodları",
     contact: "İletişim",
 };
 
@@ -136,6 +137,7 @@ export function AdminLayoutPage() {
                 { id: "lol", width: "half", visible: false },
                 { id: "sponsors", width: "full", visible: true },
                 { id: "games", width: "full", visible: true },
+                { id: "codes", width: "full", visible: true },
                 { id: "contact", width: "full", visible: true },
             ]);
         }

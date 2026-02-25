@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, boolean, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, boolean, jsonb, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -64,6 +64,10 @@ export const profile = pgTable("profile", {
     accentColor: string;
   }>(),
   riotApiKey: text("riot_api_key"),
+  // Contact Info
+  contactEmail: text("contact_email"),
+  contactPhone: text("contact_phone"),
+  contactAddress: text("contact_address"),
 });
 
 export const socialLinks = pgTable("social_links", {
@@ -80,6 +84,10 @@ export const socialLinks = pgTable("social_links", {
   customBgColor: text("custom_bg_color"),
   customTextColor: text("custom_text_color"),
   displayStyle: text("display_style").default("standard"), // 'standard' (large), 'grid' (vertical), 'icon' (round)
+}, (table) => {
+  return {
+    activeOrderIdx: index("social_links_active_order_idx").on(table.isActive, table.displayOrder),
+  };
 });
 
 export const sponsors = pgTable("sponsors", {
@@ -96,6 +104,10 @@ export const sponsors = pgTable("sponsors", {
   colSpan: integer("col_span").notNull().default(2), // 1 or 2 (2 is full width)
   customBgColor: text("custom_bg_color"),
   customTextColor: text("custom_text_color"),
+}, (table) => {
+  return {
+    activeOrderIdx: index("sponsors_active_order_idx").on(table.isActive, table.displayOrder),
+  };
 });
 
 export const discountCodes = pgTable("discount_codes", {
@@ -108,6 +120,11 @@ export const discountCodes = pgTable("discount_codes", {
   logoUrl: text("logo_url"),
   displayOrder: integer("display_order").notNull().default(0),
   isActive: boolean("is_active").notNull().default(true),
+}, (table) => {
+  return {
+    activeOrderIdx: index("discount_codes_active_order_idx").on(table.isActive, table.displayOrder),
+    sponsorIdx: index("discount_codes_sponsor_idx").on(table.sponsorId),
+  };
 });
 
 export const games = pgTable("games", {
@@ -118,6 +135,10 @@ export const games = pgTable("games", {
   logoUrl: text("logo_url"),
   displayOrder: integer("display_order").notNull().default(0),
   isActive: boolean("is_active").notNull().default(true),
+}, (table) => {
+  return {
+    activeOrderIdx: index("games_active_order_idx").on(table.isActive, table.displayOrder),
+  };
 });
 
 export const insertProfileSchema = createInsertSchema(profile).omit({ id: true });

@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, asc, desc } from "drizzle-orm";
 import {
   profile,
   socialLinks,
@@ -61,7 +61,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getSocialLinks(): Promise<SocialLink[]> {
-    return db.select().from(socialLinks);
+    return db.select().from(socialLinks).orderBy(asc(socialLinks.displayOrder));
   }
 
   async createSocialLink(data: InsertSocialLink): Promise<SocialLink> {
@@ -79,7 +79,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getSponsors(): Promise<Sponsor[]> {
-    return db.select().from(sponsors);
+    return db.select().from(sponsors).orderBy(asc(sponsors.displayOrder));
   }
 
   async createSponsor(data: InsertSponsor): Promise<Sponsor> {
@@ -100,7 +100,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getDiscountCodes(): Promise<DiscountCode[]> {
-    return db.select().from(discountCodes);
+    return db.select().from(discountCodes).orderBy(asc(discountCodes.displayOrder));
   }
 
   async createDiscountCode(data: InsertDiscountCode): Promise<DiscountCode> {
@@ -118,7 +118,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getGames(): Promise<Game[]> {
-    return db.select().from(games);
+    return db.select().from(games).orderBy(asc(games.displayOrder));
   }
 
   async createGame(data: InsertGame): Promise<Game> {

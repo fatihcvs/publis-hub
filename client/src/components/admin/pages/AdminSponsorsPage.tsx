@@ -24,6 +24,7 @@ export function AdminSponsorsPage() {
     const [isUploading, setIsUploading] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editForm, setEditForm] = useState<Partial<Sponsor>>({});
+    const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
     const [newSponsor, setNewSponsor] = useState({
         name: "",
         description: "",
@@ -59,7 +60,12 @@ export function AdminSponsorsPage() {
         mutationFn: (id: string) => apiRequest("DELETE", `/api/admin/sponsors/${id}`),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["/api/sponsors"] });
+            setConfirmDeleteId(null);
             toast({ title: "Sponsor silindi" });
+        },
+        onError: (error: any) => {
+            setConfirmDeleteId(null);
+            toast({ title: "Silme başarısız", description: error.message || "Bir hata oluştu", variant: "destructive" });
         },
     });
 
@@ -359,17 +365,33 @@ export function AdminSponsorsPage() {
                                                     >
                                                         <Edit2 className="w-4 h-4" />
                                                     </Button>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        onClick={() => {
-                                                            if (confirm(`${sponsor.name} sponsorunu silmek istediğinize emin misiniz?`)) {
-                                                                deleteSponsor.mutate(sponsor.id);
-                                                            }
-                                                        }}
-                                                    >
-                                                        <Trash2 className="w-4 h-4 text-destructive" />
-                                                    </Button>
+                                                    {confirmDeleteId === sponsor.id ? (
+                                                        <div className="flex items-center gap-1">
+                                                            <Button
+                                                                variant="destructive"
+                                                                size="sm"
+                                                                onClick={() => deleteSponsor.mutate(sponsor.id)}
+                                                                disabled={deleteSponsor.isPending}
+                                                            >
+                                                                {deleteSponsor.isPending ? "Siliniyor..." : "Sil"}
+                                                            </Button>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={() => setConfirmDeleteId(null)}
+                                                            >
+                                                                <X className="w-3 h-3" />
+                                                            </Button>
+                                                        </div>
+                                                    ) : (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() => setConfirmDeleteId(sponsor.id)}
+                                                        >
+                                                            <Trash2 className="w-4 h-4 text-destructive" />
+                                                        </Button>
+                                                    )}
                                                 </div>
                                             </>
                                         )}

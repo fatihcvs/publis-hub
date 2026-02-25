@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Save, Plus, Trash2, ExternalLink, Edit2, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -225,7 +226,10 @@ export function AdminSocialPage() {
                                             // View Mode
                                             <>
                                                 <div className="flex-1">
-                                                    <div className="font-semibold">{link.platform}</div>
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="font-semibold">{link.platform}</div>
+                                                        {!link.isActive && <span className="text-xs bg-muted text-muted-foreground px-1.5 py-0.5 rounded">Gizli</span>}
+                                                    </div>
                                                     <a
                                                         href={link.url}
                                                         target="_blank"
@@ -239,7 +243,16 @@ export function AdminSocialPage() {
                                                         Görünüm: {link.displayStyle === "standard" ? "Standart" : link.displayStyle === "icon" ? "Sadece İkon" : "Sadece Yazı"}
                                                     </span>
                                                 </div>
-                                                <div className="flex items-center gap-2">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="flex items-center gap-2">
+                                                        <Label className="text-xs text-muted-foreground">Aktif</Label>
+                                                        <Switch
+                                                            checked={link.isActive}
+                                                            onCheckedChange={(checked) =>
+                                                                updateLink.mutate({ id: link.id, isActive: checked })
+                                                            }
+                                                        />
+                                                    </div>
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"

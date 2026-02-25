@@ -12,7 +12,8 @@ import {
     Layout,
     Settings,
     Menu,
-    X
+    X,
+    LayoutGrid
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -27,7 +28,7 @@ const navItems: NavItem[] = [
     { label: "Genel Bakış", path: "/admin", icon: LayoutDashboard },
     { label: "Profil & Biyografi", path: "/admin/profile", icon: User },
     { label: "Görünüm & Tema", path: "/admin/appearance", icon: Palette },
-    { label: "Widget'lar", path: "/admin/widgets", icon: Gamepad2 },
+    { label: "Widget'lar", path: "/admin/widgets", icon: LayoutGrid },
     { label: "Sosyal Medya", path: "/admin/social", icon: LinkIcon },
     { label: "Sponsorlar", path: "/admin/sponsors", icon: DollarSign },
     { label: "Oyunlar", path: "/admin/games", icon: Gamepad2 },
@@ -94,14 +95,23 @@ export function AdminSidebar() {
                         </ul>
                     </nav>
 
-                    {/* Footer */}
-                    <div className="p-4 border-t">
-                        <Link href="/">
-                            <a className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-                                <LinkIcon className="w-4 h-4" />
-                                <span>Siteye Dön</span>
-                            </a>
-                        </Link>
+                    <div className="p-4 border-t space-y-2">
+                        <a
+                            href="/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                            <LinkIcon className="w-4 h-4" />
+                            <span>Siteyi Görüntüle ↗</span>
+                        </a>
+                        <a
+                            href="/api/logout"
+                            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-destructive transition-colors"
+                        >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                            <span>Çıkış Yap</span>
+                        </a>
                     </div>
                 </div>
             </aside>

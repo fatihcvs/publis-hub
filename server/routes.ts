@@ -29,10 +29,44 @@ const upload = multer({
   },
 });
 
+// Simple In-Memory Cache for Hub Data
+let hubCache: any = null;
+let hubCacheTime = 0;
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+export function clearHubCache() {
+  hubCache = null;
+}
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+
+  app.get("/api/hub-data", async (req, res) => {
+    try {
+      const now = Date.now();
+      if (hubCache && now - hubCacheTime < CACHE_TTL) {
+        return res.json(hubCache);
+      }
+
+      const [profile, socialLinks, sponsors, discountCodes, games] = await Promise.all([
+        storage.getProfile(),
+        storage.getSocialLinks(),
+        storage.getSponsors(),
+        storage.getDiscountCodes(),
+        storage.getGames()
+      ]);
+
+      hubCache = { profile, socialLinks, sponsors, discountCodes, games };
+      hubCacheTime = now;
+
+      res.json(hubCache);
+    } catch (error) {
+      console.error("Error fetching hub data:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
 
   app.get("/api/profile", async (req, res) => {
     try {
@@ -109,11 +143,11 @@ export async function registerRoutes(
     });
   };
 
-  // Upload endpoints (local multer-based)
-  app.post("/api/admin/upload-logo", handleUpload);
-  app.post("/api/admin/upload-sponsor-logo", handleUpload);
-  app.post("/api/admin/upload-game-logo", handleUpload);
-  app.post("/api/admin/upload-background-image", handleUpload);
+  // Upload endpoints (local multer-based) - protected by auth
+  app.post("/api/admin/upload-logo", isAuthenticated, handleUpload);
+  app.post("/api/admin/upload-sponsor-logo", isAuthenticated, handleUpload);
+  app.post("/api/admin/upload-game-logo", isAuthenticated, handleUpload);
+  app.post("/api/admin/upload-background-image", isAuthenticated, handleUpload);
 
   app.put("/api/admin/profile", isAuthenticated, async (req, res) => {
     try {
@@ -126,6 +160,7 @@ export async function registerRoutes(
       }
       const parsed = updateSchema.parse(req.body);
       const result = await storage.updateProfile(existing.id, parsed);
+      clearHubCache();
       res.json(result);
     } catch (error) {
       console.error("Error updating profile:", error);
@@ -137,6 +172,7 @@ export async function registerRoutes(
     try {
       const parsed = insertSocialLinkSchema.parse(req.body);
       const result = await storage.createSocialLink(parsed);
+      clearHubCache();
       res.json(result);
     } catch (error) {
       console.error("Error creating social link:", error);
@@ -149,6 +185,7 @@ export async function registerRoutes(
       const updateSchema = insertSocialLinkSchema.partial();
       const parsed = updateSchema.parse(req.body);
       const result = await storage.updateSocialLink(req.params.id as string, parsed);
+      clearHubCache();
       res.json(result);
     } catch (error) {
       console.error("Error updating social link:", error);
@@ -159,6 +196,7 @@ export async function registerRoutes(
   app.delete("/api/admin/social-links/:id", isAuthenticated, async (req, res) => {
     try {
       await storage.deleteSocialLink(req.params.id as string);
+      clearHubCache();
       res.json({ success: true });
     } catch (error) {
       console.error("Error deleting social link:", error);
@@ -170,6 +208,7 @@ export async function registerRoutes(
     try {
       const parsed = insertSponsorSchema.parse(req.body);
       const result = await storage.createSponsor(parsed);
+      clearHubCache();
       res.json(result);
     } catch (error) {
       console.error("Error creating sponsor:", error);
@@ -182,6 +221,7 @@ export async function registerRoutes(
       const updateSchema = insertSponsorSchema.partial();
       const parsed = updateSchema.parse(req.body);
       const result = await storage.updateSponsor(req.params.id as string, parsed);
+      clearHubCache();
       res.json(result);
     } catch (error) {
       console.error("Error updating sponsor:", error);
@@ -192,6 +232,7 @@ export async function registerRoutes(
   app.delete("/api/admin/sponsors/:id", isAuthenticated, async (req, res) => {
     try {
       await storage.deleteSponsor(req.params.id as string);
+      clearHubCache();
       res.json({ success: true });
     } catch (error) {
       console.error("Error deleting sponsor:", error);
@@ -203,6 +244,7 @@ export async function registerRoutes(
     try {
       const parsed = insertDiscountCodeSchema.parse(req.body);
       const result = await storage.createDiscountCode(parsed);
+      clearHubCache();
       res.json(result);
     } catch (error) {
       console.error("Error creating discount code:", error);
@@ -215,6 +257,7 @@ export async function registerRoutes(
       const updateSchema = insertDiscountCodeSchema.partial();
       const parsed = updateSchema.parse(req.body);
       const result = await storage.updateDiscountCode(req.params.id as string, parsed);
+      clearHubCache();
       res.json(result);
     } catch (error) {
       console.error("Error updating discount code:", error);
@@ -225,6 +268,7 @@ export async function registerRoutes(
   app.delete("/api/admin/discount-codes/:id", isAuthenticated, async (req, res) => {
     try {
       await storage.deleteDiscountCode(req.params.id as string);
+      clearHubCache();
       res.json({ success: true });
     } catch (error) {
       console.error("Error deleting discount code:", error);
@@ -237,6 +281,7 @@ export async function registerRoutes(
     try {
       const parsed = insertGameSchema.parse(req.body);
       const result = await storage.createGame(parsed);
+      clearHubCache();
       res.json(result);
     } catch (error) {
       console.error("Error creating game:", error);
@@ -249,6 +294,7 @@ export async function registerRoutes(
       const updateSchema = insertGameSchema.partial();
       const parsed = updateSchema.parse(req.body);
       const result = await storage.updateGame(req.params.id as string, parsed);
+      clearHubCache();
       res.json(result);
     } catch (error) {
       console.error("Error updating game:", error);
@@ -259,6 +305,7 @@ export async function registerRoutes(
   app.delete("/api/admin/games/:id", isAuthenticated, async (req, res) => {
     try {
       await storage.deleteGame(req.params.id as string);
+      clearHubCache();
       res.json({ success: true });
     } catch (error) {
       console.error("Error deleting game:", error);

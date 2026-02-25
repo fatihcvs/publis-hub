@@ -136,6 +136,14 @@ export default function Admin() {
             {page === "contact" && <AdminContactPage />}
             {page === "layout" && <AdminLayoutPage />}
             {page === "settings" && <AdminSettingsPage />}
+            {page && !["", "profile", "appearance", "widgets", "social", "sponsors", "codes", "games", "contact", "layout", "settings"].includes(page) && (
+                <div className="flex min-h-[60vh] items-center justify-center">
+                    <div className="text-center">
+                        <h2 className="text-2xl font-bold mb-2">Sayfa Bulunamadı</h2>
+                        <p className="text-muted-foreground">Bu admin sayfası mevcut değil.</p>
+                    </div>
+                </div>
+            )}
         </AdminLayout>
     );
 }

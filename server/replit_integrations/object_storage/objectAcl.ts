@@ -1,4 +1,6 @@
-import { File } from "@google-cloud/storage";
+// @google-cloud/storage only available on Replit
+let File: any;
+try { File = require("@google-cloud/storage").File; } catch (_e) { }
 
 const ACL_POLICY_METADATA_KEY = "custom:aclPolicy";
 
@@ -12,7 +14,7 @@ const ACL_POLICY_METADATA_KEY = "custom:aclPolicy";
 // - GROUP_MEMBER: the users who are members of a specific group;
 // - SUBSCRIBER: the users who are subscribers of a specific service / content
 //   creator.
-export enum ObjectAccessGroupType {}
+export enum ObjectAccessGroupType { }
 
 // The logic user group that can access the object.
 export interface ObjectAccessGroup {
@@ -76,7 +78,7 @@ abstract class BaseObjectAccessGroup implements ObjectAccessGroup {
   constructor(
     public readonly type: ObjectAccessGroupType,
     public readonly id: string,
-  ) {}
+  ) { }
 
   // Check if the user is a member of the group.
   public abstract hasMember(userId: string): Promise<boolean>;

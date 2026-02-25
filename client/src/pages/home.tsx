@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Copy, Check, ExternalLink, Percent, Gamepad2, Users, Star, Mail } from "lucide-react";
 import { SiKick, SiYoutube, SiX, SiInstagram, SiDiscord, SiTiktok, SiTwitch, SiGithub, SiFacebook, SiLinkedin } from "react-icons/si";
 import { Globe } from "lucide-react";
-import type { Profile, SocialLink, Sponsor, DiscountCode } from "@shared/schema";
+import type { Profile, SocialLink, Sponsor, DiscountCode, Game } from "@shared/schema";
 
 // Import Nunito font
 import "@fontsource/nunito/400.css";
@@ -16,9 +16,9 @@ import "@fontsource/nunito/600.css";
 import "@fontsource/nunito/700.css";
 import "@fontsource/nunito/800.css";
 
-import { KickWidget } from "@/components/widgets/kick-widget";
 import { FloatingEmojis } from "@/components/widgets/floating-emojis";
-import { LoLWidget } from "@/components/widgets/LoLWidget";
+const KickWidget = lazy(() => import("@/components/widgets/kick-widget").then(m => ({ default: m.KickWidget })));
+const LoLWidget = lazy(() => import("@/components/widgets/LoLWidget").then(m => ({ default: m.LoLWidget })));
 
 const platformIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   kick: SiKick,
@@ -53,21 +53,21 @@ export default function Home() {
   const [copiedSponsorId, setCopiedSponsorId] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const { data: profile, isLoading: profileLoading } = useQuery<Profile>({
-    queryKey: ["/api/profile"],
+  const { data: hubData, isLoading: hubLoading } = useQuery<{
+    profile: Profile;
+    socialLinks: SocialLink[];
+    sponsors: Sponsor[];
+    discountCodes: DiscountCode[];
+    games: Game[];
+  }>({
+    queryKey: ["/api/hub-data"],
   });
 
-  const { data: socialLinks = [] } = useQuery<SocialLink[]>({
-    queryKey: ["/api/social-links"],
-  });
-
-  const { data: sponsors = [] } = useQuery<Sponsor[]>({
-    queryKey: ["/api/sponsors"],
-  });
-
-  const { data: discountCodes = [] } = useQuery<DiscountCode[]>({
-    queryKey: ["/api/discount-codes"],
-  });
+  const profile = hubData?.profile;
+  const socialLinks = hubData?.socialLinks || [];
+  const sponsors = hubData?.sponsors || [];
+  const discountCodes = hubData?.discountCodes || [];
+  const games = hubData?.games || [];
 
   const activeLinks = socialLinks.filter(l => l.isActive).sort((a, b) => a.displayOrder - b.displayOrder);
   const activeSponsors = sponsors.filter(s => s.isActive).sort((a, b) => a.displayOrder - b.displayOrder);
@@ -167,7 +167,7 @@ export default function Home() {
     }
   };
 
-  if (profileLoading) {
+  if (hubLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="relative">
@@ -219,6 +219,16 @@ export default function Home() {
       } as React.CSSProperties}
     >
 
+      {/* Announcement Banner */}
+      {profile?.announcementEnabled && profile?.announcementText && (
+        <div
+          className="w-full text-center text-sm font-medium py-2 px-4 text-white z-50 relative"
+          style={{ backgroundColor: profile.announcementColor || "#7c3aed" }}
+        >
+          {profile.announcementText}
+        </div>
+      )}
+
       {/* Background Image / Effects */}
       <div className="fixed inset-0 pointer-events-none">
         {profile?.backgroundImageUrl ? (
@@ -256,6 +266,7 @@ export default function Home() {
               { id: "sponsors", visible: true, width: "full" },
               { id: "lol", visible: false, width: "half" },
               { id: "games", visible: true, width: "full" },
+              { id: "codes", visible: true, width: "full" },
               { id: "contact", visible: true, width: "full" }
             ]
           ).filter((section: any) => section.visible).map((section: any) => {
@@ -264,6 +275,23 @@ export default function Home() {
                 case "bio":
                   return (
                     <div className="flex flex-col items-center gap-6 mb-4">
+                      {/* Stats Row */}
+                      {profile?.statsEnabled && (profile?.statsFollowers || profile?.statsViews) && (
+                        <div className="flex items-center gap-6 text-center mb-2">
+                          {profile.statsFollowers && (
+                            <div>
+                              <div className="text-xl font-bold text-foreground">{profile.statsFollowers}</div>
+                              <div className="text-xs text-muted-foreground">Takipçi</div>
+                            </div>
+                          )}
+                          {profile.statsViews && (
+                            <div>
+                              <div className="text-xl font-bold text-foreground">{profile.statsViews}</div>
+                              <div className="text-xs text-muted-foreground">Görüntülenme</div>
+                            </div>
+                          )}
+                        </div>
+                      )}
                       <div className="relative group">
                         <div className="absolute -inset-2 bg-gradient-to-r from-primary via-primary/50 to-primary rounded-full opacity-75 blur-lg group-hover:opacity-100 transition-opacity duration-500 animate-pulse" />
                         <div className="absolute -inset-1 bg-gradient-to-r from-primary to-primary/80 rounded-full" />
@@ -276,6 +304,20 @@ export default function Home() {
                       </div>
 
                       <div className="text-center space-y-2 w-full">
+                        {profile?.ctaButtonEnabled && profile?.ctaButtonText && profile?.ctaButtonUrl && (
+                          <div className="mb-3">
+                            <a
+                              href={profile.ctaButtonUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-white font-semibold text-sm shadow-lg hover:opacity-90 transition-opacity"
+                              style={{ backgroundColor: `rgb(${primaryRgb})` }}
+                            >
+                              {profile.ctaButtonText}
+                              <ExternalLink className="w-4 h-4" />
+                            </a>
+                          </div>
+                        )}
                         {profile?.bioTitle ? (
                           <div
                             className="rounded-xl p-4 mb-4 border"
@@ -330,10 +372,18 @@ export default function Home() {
                   return null;
                 case "kick":
                   if (!profile?.kickUsername) return null;
-                  return <KickWidget username={profile.kickUsername} autoplay={profile.kickAutoplay ?? true} />;
+                  return (
+                    <Suspense fallback={<div className="h-64 rounded-xl border border-border/50 bg-card/50 animate-pulse" />}>
+                      <KickWidget username={profile.kickUsername} autoplay={profile.kickAutoplay ?? true} />
+                    </Suspense>
+                  );
                 case "lol":
                   if (!profile?.lolWidgetEnabled) return null;
-                  return <LoLWidget />;
+                  return (
+                    <Suspense fallback={<div className="h-48 rounded-xl border border-border/50 bg-card/50 animate-pulse" />}>
+                      <LoLWidget />
+                    </Suspense>
+                  );
                 case "age_verify":
                   return null; // Modal is handled globally
                 case "socials":
@@ -456,7 +506,7 @@ export default function Home() {
                           <div key={sponsor.id} className="group relative p-5 rounded-xl border border-border/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:border-primary/20"
                             style={{ backgroundColor: `rgba(var(--card-rgb), ${(profile?.cardOpacity ?? 80) / 100})`, backdropFilter: "blur(8px)" }}>
                             <div className="flex items-start gap-4">
-                              {sponsor.logoUrl ? <div className="shrink-0 p-2 rounded-lg bg-background border border-border/50"><img src={sponsor.logoUrl} className="w-12 h-12 rounded object-contain" /></div> : <div className="shrink-0 w-16 h-16 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center"><Star className="w-6 h-6 text-primary" /></div>}
+                              {sponsor.logoUrl ? <div className="shrink-0 p-2 rounded-lg bg-background border border-border/50"><img src={sponsor.logoUrl} loading="lazy" className="w-12 h-12 rounded object-contain" /></div> : <div className="shrink-0 w-16 h-16 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center"><Star className="w-6 h-6 text-primary" /></div>}
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center justify-between gap-2">
                                   <h3 className="font-semibold text-lg">{sponsor.name}</h3>
@@ -471,13 +521,76 @@ export default function Home() {
                       </div>
                     </div>
                   );
-                case "games":
+                case "games": {
+                  const activeGames = games.filter((g: any) => g.isActive).sort((a: any, b: any) => a.displayOrder - b.displayOrder);
+                  const hasCodesSection = (profile?.layoutConfig as any[])?.some((s: any) => s.id === "codes");
+                  const showCodes = !hasCodesSection && activeCodes.length > 0;
+                  if (activeGames.length === 0 && !showCodes) return null;
+                  return (
+                    <div className="flex flex-col gap-4 mt-4">
+                      {activeGames.length > 0 && (
+                        <div>
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-transparent" />
+                            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground"><Gamepad2 className="w-4 h-4 text-primary" /><span>Oyunlar</span><Gamepad2 className="w-4 h-4 text-primary" /></div>
+                            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-transparent" />
+                          </div>
+                          <div className="grid gap-3 grid-cols-2">
+                            {activeGames.map((game: any) => (
+                              <a
+                                key={game.id}
+                                href={game.url || undefined}
+                                target={game.url ? "_blank" : undefined}
+                                rel="noopener noreferrer"
+                                className={`group relative flex items-center gap-3 p-4 rounded-xl border border-border/50 transition-all duration-300 hover:shadow-lg hover:border-primary/20 ${game.url ? 'cursor-pointer' : 'cursor-default'}`}
+                                style={{ backgroundColor: `rgba(var(--card-rgb), ${(profile?.cardOpacity ?? 80) / 100})`, backdropFilter: "blur(8px)" }}
+                              >
+                                {game.logoUrl ? <img src={game.logoUrl} loading="lazy" className="w-10 h-10 object-cover rounded-lg shadow" /> : <div className="p-2 rounded-lg bg-gradient-to-br from-primary to-primary/80 text-white shadow"><Gamepad2 className="w-5 h-5" /></div>}
+                                <div className="flex-1 min-w-0">
+                                  <span className="font-semibold text-sm truncate block">{game.name}</span>
+                                  {game.platform && <span className="text-xs text-muted-foreground">{game.platform}</span>}
+                                </div>
+                              </a>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {showCodes && (
+                        <div>
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-transparent" />
+                            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground"><Percent className="w-4 h-4 text-primary" /><span>İndirim Kodları</span><Percent className="w-4 h-4 text-primary" /></div>
+                            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-transparent" />
+                          </div>
+                          <div className="grid gap-4">
+                            {activeCodes.map(code => (
+                              <div key={code.id} className="group relative p-5 rounded-xl border border-border/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:border-primary/20"
+                                style={{ backgroundColor: `rgba(var(--card-rgb), ${(profile?.cardOpacity ?? 80) / 100})`, backdropFilter: "blur(8px)" }}>
+                                <div className="flex items-center justify-between gap-4">
+                                  <div className="flex items-center gap-3">
+                                    {code.logoUrl ? <img src={code.logoUrl} loading="lazy" className="w-12 h-12 object-cover rounded-lg shadow-lg" /> : <div className="p-2.5 rounded-lg bg-gradient-to-br from-primary to-primary/80 text-white shadow-lg"><Gamepad2 className="w-5 h-5" /></div>}
+                                    <div>
+                                      <span className="font-semibold text-lg">{code.description || code.code}</span>
+                                      {code.code && code.code !== "-" && <div className="flex items-center gap-2 mt-1"><code className="px-2 py-0.5 rounded bg-primary/10 font-mono text-sm text-primary font-semibold">{code.code}</code><Button size="sm" variant="ghost" onClick={() => copyCode(code)} className="h-6 px-2">{copiedId === code.id ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}</Button></div>}
+                                    </div>
+                                  </div>
+                                  {code.url && <a href={code.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-opacity" style={{ backgroundColor: `rgb(${primaryRgb})` }}>Satın Al <ExternalLink className="w-3.5 h-3.5" /></a>}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+                case "codes":
                   if (activeCodes.length === 0) return null;
                   return (
                     <div className="mt-4">
                       <div className="flex items-center gap-3 mb-4">
                         <div className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-transparent" />
-                        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground"><Gamepad2 className="w-4 h-4 text-primary" /><span>Oyunlar</span><Gamepad2 className="w-4 h-4 text-primary" /></div>
+                        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground"><Percent className="w-4 h-4 text-primary" /><span>İndirim Kodları</span><Percent className="w-4 h-4 text-primary" /></div>
                         <div className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-transparent" />
                       </div>
                       <div className="grid gap-4">
@@ -486,13 +599,13 @@ export default function Home() {
                             style={{ backgroundColor: `rgba(var(--card-rgb), ${(profile?.cardOpacity ?? 80) / 100})`, backdropFilter: "blur(8px)" }}>
                             <div className="flex items-center justify-between gap-4">
                               <div className="flex items-center gap-3">
-                                {code.logoUrl ? <img src={code.logoUrl} className="w-12 h-12 object-cover rounded-lg shadow-lg" /> : <div className="p-2.5 rounded-lg bg-gradient-to-br from-primary to-primary/80 text-white shadow-lg"><Gamepad2 className="w-5 h-5" /></div>}
+                                {code.logoUrl ? <img src={code.logoUrl} loading="lazy" className="w-12 h-12 object-cover rounded-lg shadow-lg" /> : <div className="p-2.5 rounded-lg bg-gradient-to-br from-primary to-primary/80 text-white shadow-lg"><Gamepad2 className="w-5 h-5" /></div>}
                                 <div>
                                   <span className="font-semibold text-lg">{code.description || code.code}</span>
                                   {code.code && code.code !== "-" && <div className="flex items-center gap-2 mt-1"><code className="px-2 py-0.5 rounded bg-primary/10 font-mono text-sm text-primary font-semibold">{code.code}</code><Button size="sm" variant="ghost" onClick={() => copyCode(code)} className="h-6 px-2">{copiedId === code.id ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}</Button></div>}
                                 </div>
                               </div>
-                              {code.url && <a href={code.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-opacity" style={{ backgroundColor: `rgb(var(--primary))` }}>Satın Al <ExternalLink className="w-3.5 h-3.5" /></a>}
+                              {code.url && <a href={code.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-opacity" style={{ backgroundColor: `rgb(${primaryRgb})` }}>Satın Al <ExternalLink className="w-3.5 h-3.5" /></a>}
                             </div>
                           </div>
                         ))}
@@ -500,12 +613,14 @@ export default function Home() {
                     </div>
                   );
                 case "contact":
+                  const contactEmail = (profile as any)?.contactEmail || "";
+                  if (!contactEmail) return null;
                   return (
                     <div className="mt-8">
-                      <a href="mailto:contact@thepublishers.info" className="group flex items-center justify-center gap-3 px-6 py-4 rounded-xl border border-border/50 hover:border-primary/50 transition-all duration-300"
+                      <a href={`mailto:${contactEmail}`} className="group flex items-center justify-center gap-3 px-6 py-4 rounded-xl border border-border/50 hover:border-primary/50 transition-all duration-300"
                         style={{ backgroundColor: `rgba(var(--card-rgb), ${(profile?.cardOpacity ?? 80) / 100})`, backdropFilter: "blur(8px)" }}>
                         <div className="p-2 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors"><Mail className="w-5 h-5 text-primary" /></div>
-                        <div className="flex flex-col items-start"><span className="text-xs text-muted-foreground">İletişim</span><span className="text-sm font-medium text-foreground">contact@thepublishers.info</span></div>
+                        <div className="flex flex-col items-start"><span className="text-xs text-muted-foreground">İletişim</span><span className="text-sm font-medium text-foreground">{contactEmail}</span></div>
                       </a>
                     </div>
                   );

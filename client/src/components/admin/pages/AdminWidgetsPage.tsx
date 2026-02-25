@@ -337,6 +337,167 @@ export function AdminWidgetsPage() {
                 </CardContent>
             </Card>
 
+            {/* Announcement Banner */}
+            <Card>
+                <CardHeader>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <CardTitle className="flex items-center gap-2">
+                                📢 Duyuru Banner'ı
+                            </CardTitle>
+                            <CardDescription>Sayfanın en üstünde renkli bir duyuru bandı göster</CardDescription>
+                        </div>
+                        <Switch
+                            checked={widgetsForm.announcementEnabled}
+                            onCheckedChange={(checked) => setWidgetsForm({ ...widgetsForm, announcementEnabled: checked })}
+                        />
+                    </div>
+                </CardHeader>
+                {widgetsForm.announcementEnabled && (
+                    <CardContent className="space-y-4">
+                        <div>
+                            <Label>Duyuru Metni</Label>
+                            <Input
+                                value={widgetsForm.announcementText}
+                                onChange={(e) => setWidgetsForm({ ...widgetsForm, announcementText: e.target.value })}
+                                placeholder="Ör: 🎮 Bu hafta sonu turnuva yayını var!"
+                                className="mt-2"
+                            />
+                        </div>
+                        <div>
+                            <Label>Banner Rengi</Label>
+                            <div className="flex items-center gap-3 mt-2">
+                                <Input
+                                    type="color"
+                                    value={widgetsForm.announcementColor}
+                                    onChange={(e) => setWidgetsForm({ ...widgetsForm, announcementColor: e.target.value })}
+                                    className="w-12 h-12 p-1 rounded-md cursor-pointer"
+                                />
+                                <span className="text-sm text-muted-foreground">{widgetsForm.announcementColor}</span>
+                                <div
+                                    className="flex-1 py-2 px-4 rounded-md text-white text-sm text-center font-medium truncate"
+                                    style={{ backgroundColor: widgetsForm.announcementColor }}
+                                >
+                                    {widgetsForm.announcementText || "Önizleme"}
+                                </div>
+                            </div>
+                        </div>
+                    </CardContent>
+                )}
+            </Card>
+
+            {/* CTA Button */}
+            <Card>
+                <CardHeader>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <CardTitle className="flex items-center gap-2">
+                                🔗 CTA Butonu
+                            </CardTitle>
+                            <CardDescription>Profil fotoğrafının altında öne çıkan bir yönlendirme butonu</CardDescription>
+                        </div>
+                        <Switch
+                            checked={widgetsForm.ctaButtonEnabled}
+                            onCheckedChange={(checked) => setWidgetsForm({ ...widgetsForm, ctaButtonEnabled: checked })}
+                        />
+                    </div>
+                </CardHeader>
+                {widgetsForm.ctaButtonEnabled && (
+                    <CardContent className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <Label>Buton Metni</Label>
+                                <Input
+                                    value={widgetsForm.ctaButtonText}
+                                    onChange={(e) => setWidgetsForm({ ...widgetsForm, ctaButtonText: e.target.value })}
+                                    placeholder="Ör: Discord'a Katıl 🎮"
+                                    className="mt-2"
+                                />
+                            </div>
+                            <div>
+                                <Label>Hedef URL</Label>
+                                <Input
+                                    type="url"
+                                    value={widgetsForm.ctaButtonUrl}
+                                    onChange={(e) => setWidgetsForm({ ...widgetsForm, ctaButtonUrl: e.target.value })}
+                                    placeholder="https://discord.gg/..."
+                                    className="mt-2"
+                                />
+                            </div>
+                        </div>
+                        {widgetsForm.ctaButtonText && (
+                            <div className="p-3 bg-muted/50 rounded-lg">
+                                <p className="text-xs text-muted-foreground mb-2">Önizleme:</p>
+                                <button className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-white font-semibold text-sm shadow-lg opacity-90 cursor-default" style={{ backgroundColor: "rgb(124 58 237)" }}>
+                                    {widgetsForm.ctaButtonText}
+                                </button>
+                            </div>
+                        )}
+                    </CardContent>
+                )}
+            </Card>
+
+            {/* Stats Widget */}
+            <Card>
+                <CardHeader>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <CardTitle className="flex items-center gap-2">
+                                📊 İstatistik Gösterimi
+                            </CardTitle>
+                            <CardDescription>Takipçi ve görüntülenme sayılarını profil altında göster</CardDescription>
+                        </div>
+                        <Switch
+                            checked={widgetsForm.statsEnabled}
+                            onCheckedChange={(checked) => setWidgetsForm({ ...widgetsForm, statsEnabled: checked })}
+                        />
+                    </div>
+                </CardHeader>
+                {widgetsForm.statsEnabled && (
+                    <CardContent className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <Label>Takipçi Sayısı</Label>
+                                <Input
+                                    value={widgetsForm.statsFollowers}
+                                    onChange={(e) => setWidgetsForm({ ...widgetsForm, statsFollowers: e.target.value })}
+                                    placeholder="Ör: 12.5K veya 12500"
+                                    className="mt-2"
+                                />
+                                <p className="text-xs text-muted-foreground mt-1">Boş bırakırsanız gösterilmez</p>
+                            </div>
+                            <div>
+                                <Label>Görüntülenme Sayısı</Label>
+                                <Input
+                                    value={widgetsForm.statsViews}
+                                    onChange={(e) => setWidgetsForm({ ...widgetsForm, statsViews: e.target.value })}
+                                    placeholder="Ör: 1.2M veya 1200000"
+                                    className="mt-2"
+                                />
+                                <p className="text-xs text-muted-foreground mt-1">Boş bırakırsanız gösterilmez</p>
+                            </div>
+                        </div>
+                        {(widgetsForm.statsFollowers || widgetsForm.statsViews) && (
+                            <div className="p-3 bg-muted/50 rounded-lg flex items-center gap-6 text-center">
+                                <p className="text-xs text-muted-foreground">Önizleme:</p>
+                                {widgetsForm.statsFollowers && (
+                                    <div>
+                                        <div className="text-xl font-bold">{widgetsForm.statsFollowers}</div>
+                                        <div className="text-xs text-muted-foreground">Takipçi</div>
+                                    </div>
+                                )}
+                                {widgetsForm.statsViews && (
+                                    <div>
+                                        <div className="text-xl font-bold">{widgetsForm.statsViews}</div>
+                                        <div className="text-xs text-muted-foreground">Görüntülenme</div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </CardContent>
+                )}
+            </Card>
+
             <Button onClick={() => updateProfile.mutate(widgetsForm)} disabled={updateProfile.isPending}>
                 <Save className="w-4 h-4 mr-2" />
                 Kaydet
