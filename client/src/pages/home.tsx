@@ -179,11 +179,6 @@ export default function Home() {
   }
 
   // Calculate styles based on profile settings
-  const themeStyle = {
-    "--primary": profile?.themeColor || "#7c3aed",
-    "--primary-foreground": "#ffffff",
-  } as React.CSSProperties;
-
   const backgroundStyle = profile?.backgroundImageUrl ? {
     backgroundImage: `url(${profile.backgroundImageUrl})`,
     backgroundSize: "cover",
@@ -191,21 +186,39 @@ export default function Home() {
     filter: `blur(${profile.backgroundBlur ?? 0}px)`,
   } as React.CSSProperties : {};
 
-  const cardStyle = {
-    backgroundColor: `rgba(var(--card-rgb), ${((profile?.cardOpacity ?? 80) / 100)})`, // Assuming --card-rgb is available or we use a hex conversion
-    // Fallback if --card-rgb is not defined in global css, we can use a hex/rgb value. 
-    // Let's use a simpler approach for now: modifying the tailwind classes or inline style for bg.
-    // Actually, shadcn cards use bg-card. We can override it or use a specific rgba.
-    // Let's try to set a custom variable or style for cards.
-  };
-
   // Helper to hex to rgb
   const hexToRgb = (hex: string) => {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     return result ? `${parseInt(result[1], 16)} ${parseInt(result[2], 16)} ${parseInt(result[3], 16)}` : null;
   };
 
+  // Helper to convert hex to "h s% l%" so it can feed Tailwind's hsl(var(--primary)) tokens
+  const hexToHsl = (hex: string): string | null => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    if (!result) return null;
+    const r = parseInt(result[1], 16) / 255;
+    const g = parseInt(result[2], 16) / 255;
+    const b = parseInt(result[3], 16) / 255;
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const l = (max + min) / 2;
+    let h = 0;
+    let s = 0;
+    if (max !== min) {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+        case g: h = (b - r) / d + 2; break;
+        case b: h = (r - g) / d + 4; break;
+      }
+      h /= 6;
+    }
+    return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
+  };
+
   const primaryRgb = profile?.themeColor ? hexToRgb(profile.themeColor) : "124 58 237"; // violet-600 default
+  const primaryHsl = profile?.themeColor ? hexToHsl(profile.themeColor) : null;
   const borderRadius = profile?.borderRadius || "2rem";
   const fontFamily = profile?.fontFamily || "Nunito";
 
@@ -214,7 +227,7 @@ export default function Home() {
       className="min-h-screen bg-background relative overflow-hidden transition-colors duration-500"
       data-testid="page-home"
       style={{
-        "--primary": primaryRgb,
+        ...(primaryHsl ? { "--primary": primaryHsl } : {}),
         fontFamily: fontFamily,
       } as React.CSSProperties}
     >

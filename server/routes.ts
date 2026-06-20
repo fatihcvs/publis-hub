@@ -156,6 +156,7 @@ export async function registerRoutes(
       if (!existing) {
         const parsed = insertProfileSchema.parse(req.body);
         const result = await storage.createProfile(parsed);
+        clearHubCache();
         return res.json(result);
       }
       const parsed = updateSchema.parse(req.body);

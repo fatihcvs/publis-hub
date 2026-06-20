@@ -141,7 +141,18 @@ export const games = pgTable("games", {
   };
 });
 
-export const insertProfileSchema = createInsertSchema(profile).omit({ id: true });
+export const insertProfileSchema = createInsertSchema(profile, {
+  layoutConfig: z
+    .array(
+      z.object({
+        id: z.string(),
+        visible: z.boolean(),
+        width: z.enum(["full", "half"]),
+      })
+    )
+    .nullable()
+    .optional(),
+}).omit({ id: true });
 export const insertSocialLinkSchema = createInsertSchema(socialLinks).omit({ id: true });
 export const insertSponsorSchema = createInsertSchema(sponsors).omit({ id: true });
 export const insertDiscountCodeSchema = createInsertSchema(discountCodes).omit({ id: true });
