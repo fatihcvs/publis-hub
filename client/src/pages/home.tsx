@@ -228,7 +228,7 @@ export default function Home() {
       data-testid="page-home"
       style={{
         ...(primaryHsl ? { "--primary": primaryHsl } : {}),
-        fontFamily: fontFamily,
+        fontFamily: `"${fontFamily}", sans-serif`,
       } as React.CSSProperties}
     >
 
@@ -269,7 +269,7 @@ export default function Home() {
       </div>
 
       <main className="relative max-w-md mx-auto px-4 py-16">
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-row flex-wrap items-start gap-4">
           {(profile?.layoutConfig && (profile.layoutConfig as any[]).length > 0
             ? (profile.layoutConfig as any[])
             : [
@@ -643,9 +643,16 @@ export default function Home() {
               }
             };
 
+            const content = renderContent();
+            // Skip empty sections so they don't create gaps in the flex layout
+            if (!content) return null;
+
             return (
-              <div key={section.id} className="w-full">
-                {renderContent()}
+              <div
+                key={section.id}
+                className={section.width === "half" ? "w-[calc(50%-0.5rem)]" : "w-full"}
+              >
+                {content}
               </div>
             );
           })}

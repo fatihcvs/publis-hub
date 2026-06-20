@@ -15,7 +15,18 @@ export function registerAuthRoutes(app: Express): void {
   app.post("/api/login", (req, res) => {
     const { username, password } = req.body;
     const adminUsername = process.env.ADMIN_USERNAME || "admin";
-    const adminPassword = process.env.ADMIN_PASSWORD || "81255778.Fatih";
+    const adminPassword = process.env.ADMIN_PASSWORD;
+
+    // Refuse logins until a password has been configured via env var, so we
+    // never ship a usable default credential in the source code.
+    if (!adminPassword) {
+      console.error(
+        "ADMIN_PASSWORD is not set. Set it as an environment variable / secret to enable admin login."
+      );
+      return res.status(500).json({
+        message: "Admin girişi yapılandırılmamış. Sunucuda ADMIN_PASSWORD ayarlayın.",
+      });
+    }
 
     if (username === adminUsername && password === adminPassword) {
       (req.session as any).isAuthenticated = true;
