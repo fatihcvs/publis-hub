@@ -197,8 +197,8 @@ export function AdminSocialPage() {
                                                             </SelectTrigger>
                                                             <SelectContent>
                                                                 <SelectItem value="standard">Standart</SelectItem>
+                                                                <SelectItem value="grid">Izgara (2 Sütun)</SelectItem>
                                                                 <SelectItem value="icon">Sadece İkon</SelectItem>
-                                                                <SelectItem value="text">Sadece Yazı</SelectItem>
                                                             </SelectContent>
                                                         </Select>
                                                     </div>
@@ -240,7 +240,7 @@ export function AdminSocialPage() {
                                                         <ExternalLink className="w-3 h-3" />
                                                     </a>
                                                     <span className="text-xs text-muted-foreground mt-1 block">
-                                                        Görünüm: {link.displayStyle === "standard" ? "Standart" : link.displayStyle === "icon" ? "Sadece İkon" : "Sadece Yazı"}
+                                                        Görünüm: {link.displayStyle === "icon" ? "Sadece İkon" : link.displayStyle === "grid" ? "Izgara" : "Standart"}
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center gap-3">

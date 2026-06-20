@@ -53,7 +53,11 @@ export function AdminCodesPage() {
             apiRequest("POST", "/api/admin/discount-codes", {
                 ...data,
                 discountPercent: data.discountPercent ? parseInt(data.discountPercent) : null,
+                sponsorId: data.sponsorId && data.sponsorId !== "none" ? data.sponsorId : null,
             }),
+        onError: (error: any) => {
+            toast({ title: "Kod eklenemedi", description: error.message || "Bir hata oluştu", variant: "destructive" });
+        },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["/api/discount-codes"] });
             setNewCode({ code: "", description: "", discountPercent: "", url: "", sponsorId: "" });
@@ -103,6 +107,7 @@ export function AdminCodesPage() {
             id,
             ...editForm,
             discountPercent: editForm.discountPercent ? Number(editForm.discountPercent) : null,
+            sponsorId: editForm.sponsorId && editForm.sponsorId !== "none" ? editForm.sponsorId : null,
         });
     };
 

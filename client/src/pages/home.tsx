@@ -402,10 +402,11 @@ export default function Home() {
                 case "socials":
                   if (activeLinks.length === 0) return null;
 
-                  // Separate links by display style
-                  const standardLinks = activeLinks.filter(link => !link.displayStyle || link.displayStyle === "standard");
+                  // Separate links by display style. Anything that isn't an
+                  // explicit grid/icon style (incl. legacy values) renders as standard.
                   const gridLinks = activeLinks.filter(link => link.displayStyle === "grid");
                   const iconLinks = activeLinks.filter(link => link.displayStyle === "icon");
+                  const standardLinks = activeLinks.filter(link => link.displayStyle !== "grid" && link.displayStyle !== "icon");
 
                   return (
                     <div className="flex flex-col gap-3">
