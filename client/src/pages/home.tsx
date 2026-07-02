@@ -555,32 +555,7 @@ export default function Home() {
                           </div>
                         </div>
                       )}
-                      {showCodes && (
-                        <div>
-                          <div className="flex items-center gap-3 mb-4">
-                            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-transparent" />
-                            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground"><Percent className="w-4 h-4 text-primary" /><span>İndirim Kodları</span><Percent className="w-4 h-4 text-primary" /></div>
-                            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-transparent" />
-                          </div>
-                          <div className="grid gap-4">
-                            {activeCodes.map(code => (
-                              <div key={code.id} className="group relative p-5 rounded-xl border border-border/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:border-primary/20"
-                                style={{ backgroundColor: `rgba(var(--card-rgb), ${(profile?.cardOpacity ?? 80) / 100})`, backdropFilter: "blur(8px)" }}>
-                                <div className="flex items-center justify-between gap-4">
-                                  <div className="flex items-center gap-3">
-                                    {code.logoUrl ? <img src={code.logoUrl} loading="lazy" className="w-12 h-12 object-cover rounded-lg shadow-lg" /> : <div className="p-2.5 rounded-lg bg-gradient-to-br from-primary to-primary/80 text-white shadow-lg"><Gamepad2 className="w-5 h-5" /></div>}
-                                    <div>
-                                      <span className="font-semibold text-lg">{code.description || code.code}</span>
-                                      {code.code && code.code !== "-" && <div className="flex items-center gap-2 mt-1"><code className="px-2 py-0.5 rounded bg-primary/10 font-mono text-sm text-primary font-semibold">{code.code}</code><Button size="sm" variant="ghost" onClick={() => copyCode(code)} className="h-6 px-2">{copiedId === code.id ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}</Button></div>}
-                                    </div>
-                                  </div>
-                                  {code.url && <a href={code.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-opacity" style={{ backgroundColor: `rgb(${primaryRgb})` }}>Satın Al <ExternalLink className="w-3.5 h-3.5" /></a>}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+
                     </div>
                   );
                 }
