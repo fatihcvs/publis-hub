@@ -580,7 +580,7 @@ export default function Home() {
                                   {code.code && code.code !== "-" && <div className="flex items-center gap-2 mt-1"><code className="px-2 py-0.5 rounded bg-primary/10 font-mono text-sm text-primary font-semibold">{code.code}</code><Button size="sm" variant="ghost" onClick={() => copyCode(code)} className="h-6 px-2">{copiedId === code.id ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}</Button></div>}
                                 </div>
                               </div>
-                              {code.url && <a href={code.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-opacity" style={{ backgroundColor: `rgb(${primaryRgb})` }}>Satın Al <ExternalLink className="w-3.5 h-3.5" /></a>}
+                              {code.url && <a href={code.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-all shadow-sm hover:shadow-md whitespace-nowrap shrink-0" style={{ backgroundColor: `rgb(${primaryRgb})` }}>Ziyaret Et <ExternalLink className="w-4 h-4" /></a>}
                             </div>
                           </div>
                         ))}
