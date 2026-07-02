@@ -15,7 +15,12 @@ export function registerAuthRoutes(app: Express): void {
   app.post("/api/login", (req, res) => {
     const { username, password } = req.body;
     const adminUsername = process.env.ADMIN_USERNAME || "admin";
-    const adminPassword = process.env.ADMIN_PASSWORD || "81255778.Fatih";
+    const adminPassword = process.env.ADMIN_PASSWORD;
+
+    if (!adminPassword) {
+      console.error("ADMIN_PASSWORD environment variable is not set!");
+      return res.status(500).json({ message: "Sunucu yapılandırma hatası: Şifre ayarlanmamış" });
+    }
 
     if (username === adminUsername && password === adminPassword) {
       (req.session as any).isAuthenticated = true;
